@@ -30,3 +30,7 @@ build/
 
 ### VS Code ###
 .vscode/
+logs/
+src/main/resources/application2.properties
+src/main/resources/static/
+src/main/resources/templates/

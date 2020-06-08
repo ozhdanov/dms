@@ -3,16 +3,20 @@ package oz.med.DMSParser.services;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import oz.med.DMSParser.companies.AlfaStrah;
 import oz.med.DMSParser.companies.BestDoctor;
+import oz.med.DMSParser.companies.RosGosStrah;
+import oz.med.DMSParser.model.AlfaStrahModel;
 import oz.med.DMSParser.model.BestDoctorModel;
+import oz.med.DMSParser.model.RosGosStrahModel;
 
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeUtility;
 import java.io.File;
 import java.io.IOException;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
 
@@ -20,7 +24,8 @@ import java.util.Properties;
 @Slf4j
 public class EmailService {
 
-    private Format formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+    @Value("${mailslistsize}")
+    private Integer mailsListSize;
 
     private String saveDirectory = "D:\\temp\\mail";
 
@@ -32,6 +37,10 @@ public class EmailService {
 
     @Autowired
     BestDoctor bestDoctor;
+    @Autowired
+    AlfaStrah alfaStrah;
+    @Autowired
+    RosGosStrah rosGosStrah;
 
     /**
      * Returns a Properties object which is configured for a POP3/IMAP server
@@ -96,9 +105,9 @@ public class EmailService {
 
             int messageCount = folderInbox.getMessageCount();
 
-            messages = folderInbox.getMessages(messageCount - 200, messageCount);
+            messages = folderInbox.getMessages(messageCount - mailsListSize, messageCount);
 
-            log.info("Обработка 300 последних писем");
+            log.info("Обработка {} последних писем", mailsListSize);
 
             for (int i = 0; i < messages.length; i++) {
                 System.out.print(".");
@@ -117,8 +126,10 @@ public class EmailService {
                 String contentType = message.getContentType();
                 String messageContent = "";
 
-                if (!(bestDoctor.isAttachMail(from, subject) ||
-                        bestDoctor.isAttachMail(from, subject)
+                if (!(
+//                        bestDoctor.isListsMail(from, subject) ||
+//                        alfaStrah.isListsMail(from, subject) ||
+                        rosGosStrah.isListsMail(from, subject)
                 )) continue;
 
                 log.info("\t From: " + from);
@@ -133,28 +144,56 @@ public class EmailService {
                     int numberOfParts = multiPart.getCount();
                     for (int partCount = 0; partCount < numberOfParts; partCount++) {
                         MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(partCount);
-                        if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-                            // this part is attachment
-                            String fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
+                        if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())
+                                || Part.INLINE.equalsIgnoreCase(part.getDisposition())
+                                || (part.getDisposition() == null && part.getFileName() != null)) {
+                            String fileName = "";
+                            if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+                                fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
+                            else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
+                                fileName = MimeUtility.decodeText(part.getFileName());
                             log.info(fileName);
                             attachFiles += fileName + ", ";
 
-                            if (bestDoctor.isAttachMail(from, subject)){
-                                if(fileName.toUpperCase().contains("ПРИКРЕПЛЕНИЕ")) {
+                            //БэстДоктор
+                            if (bestDoctor.isListsMail(from, subject)) {
+                                if (bestDoctor.isAttachFile(fileName)) {
                                     List<BestDoctorModel> bestDoctorModels = bestDoctor.parseAttachListExcel(part.getInputStream());
                                     bestDoctor.addCustomersToFile(bestDoctorModels);
-                                }
-                                else if (fileName.toUpperCase().contains("ОТКРЕПЛЕНИЕ")) {
+                                } else if (bestDoctor.isDeattachFile(fileName)) {
                                     List<BestDoctorModel> bestDoctorModels = bestDoctor.parseDeattachListExcel(part.getInputStream());
                                     bestDoctor.removeCustomersFromFile(bestDoctorModels);
                                 }
                             }
+                            //Альфа
+                            else if (alfaStrah.isAttachListMail(from, subject)) {
+                                if (alfaStrah.isAttachFile(fileName)) {
+                                    List<AlfaStrahModel> alfaStrahModel = alfaStrah.parseAttachListExcel(part.getInputStream());
+                                    alfaStrah.addCustomersToFile(alfaStrahModel);
+                                }
+                            } else if (alfaStrah.isDeattachListMail(from, subject)) {
+                                if (alfaStrah.isDeattachFile(fileName)) {
+                                    List<AlfaStrahModel> alfaStrahModel = alfaStrah.parseDeattachListExcel(part.getInputStream());
+                                    alfaStrah.removeCustomersFromFile(alfaStrahModel);
+                                }
+                            }
+                            //РосГосСтрах
+                            else if (rosGosStrah.isListsMail(from, subject)) {
+                                if (rosGosStrah.isAttachFile(fileName)) {
+                                    List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseAttachListExcel(part.getInputStream());
+                                    rosGosStrah.addCustomersToFile(rosGosStrahModels);
+                                } else if (rosGosStrah.isDeattachFile(fileName)) {
+                                    List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseDeattachListExcel(part.getInputStream());
+                                    rosGosStrah.removeCustomersFromFile(rosGosStrahModels);
+                                }
+                            }
 
 
-                            part.saveFile(saveDirectory + File.separator
-                                    + new DateTime(message.getSentDate()).toString("yyyy-MM-dd_HH-mm-ss") + "_" + fileName);
+                            //todo
+//                            part.saveFile(saveDirectory + File.separator
+//                                    + new DateTime(message.getSentDate()).toString("yyyy-MM-dd_HH-mm-ss") + "_" + fileName);
 
-                        } else {
+                        } else if (part.getContent() != null){
                             // this part may be the message content
                             messageContent = part.getContent().toString();
                         }
