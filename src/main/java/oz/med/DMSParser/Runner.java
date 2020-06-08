@@ -18,7 +18,7 @@ public class Runner implements CommandLineRunner {
 //        System.setProperty("mail.mime.encodeparameters",  "false");
         System.setProperty("mail.mime.charset",  "utf-8");
 
-//        System.out.println(testQuery());
+//        log.info(testQuery());
 
 //        testParsePDF();
 

@@ -1,5 +1,6 @@
 package oz.med.DMSParser.companies;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -19,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @Service
+@Slf4j
 public class BestDoctor {
 
     @Value("${storage.bestdoctor}")
@@ -76,7 +78,7 @@ public class BestDoctor {
                     DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
                     try {
-                        System.out.println("Прикрепление пациента");
+                        log.info("Прикрепление пациента");
                         BestDoctorModel bestDoctorModel = new BestDoctorModel();
                         bestDoctorModel.setPolicyNumber(String.valueOf((int) cellIterator.next().getNumericCellValue()));
                         bestDoctorModel.setSurname(cellIterator.next().toString());
@@ -89,11 +91,11 @@ public class BestDoctor {
                         bestDoctorModel.setPolicyStartDate(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPlaceOfWork(cellIterator.next().toString());
-                        System.out.println(bestDoctorModel.toString());
+                        log.info(bestDoctorModel.toString());
 
                         customers.add(bestDoctorModel);
                     } catch (ParseException e) {
-                        System.out.println(e);
+                        log.error("Ошибка парсинга строки", e);
                     }
 
                 }
@@ -102,13 +104,10 @@ public class BestDoctor {
 
             }
 
-            System.out.println();
-
             workbook.close();
             is.close();
         } catch (IOException e) {
-            System.out.println("Не удалось распарсить документ");
-            System.out.println(e);
+            log.error("Не удалось распарсить документ", e);
         } finally {
             try {
                 workbook.close();
@@ -165,7 +164,7 @@ public class BestDoctor {
                     DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
                     try {
-                        System.out.println("Открепление пациента");
+                        log.info("Открепление пациента");
                         BestDoctorModel bestDoctorModel = new BestDoctorModel();
                         bestDoctorModel.setPolicyNumber(cellIterator.next().toString());
                         bestDoctorModel.setSurname(cellIterator.next().toString());
@@ -174,23 +173,21 @@ public class BestDoctor {
                         bestDoctorModel.setSex(cellIterator.next().toString());
                         bestDoctorModel.setDateOfBirth(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
-                        System.out.println(bestDoctorModel.toString());
+                        log.info(bestDoctorModel.toString());
 
                         customers.add(bestDoctorModel);
                     } catch (ParseException e) {
-                        System.out.println(e);
+                        log.error("Ошибка парсинга строки", e);
                     }
 
                 }
                 prewRowIndex = row.getRowNum();
             }
-            System.out.println();
 
             workbook.close();
             is.close();
         } catch (IOException e) {
-            System.out.println("Не удалось распарсить документ");
-            System.out.println(e);
+            log.error("Не удалось распарсить документ", e);
         } finally {
             try {
                 workbook.close();
@@ -273,13 +270,10 @@ public class BestDoctor {
             workbook.close();
             outputStream.close();
 
-            System.out.println();
-
             workbook.close();
             inputStream.close();
         } catch (IOException e) {
-            System.out.println("Не удалось распарсить документ");
-            System.out.println(e);
+            log.error("Не удалось распарсить документ", e);
         } finally {
             try {
                 workbook.close();
@@ -349,13 +343,10 @@ public class BestDoctor {
             workbook.close();
             outputStream.close();
 
-            System.out.println();
-
             workbook.close();
             inputStream.close();
         } catch (IOException e) {
-            System.out.println("Не удалось распарсить документ");
-            System.out.println(e);
+            log.error("Не удалось распарсить документ", e);
         } finally {
             try {
                 workbook.close();

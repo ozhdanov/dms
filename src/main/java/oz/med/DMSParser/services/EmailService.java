@@ -1,5 +1,6 @@
 package oz.med.DMSParser.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Service
+@Slf4j
 public class EmailService {
 
     private Format formatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
@@ -67,7 +69,7 @@ public class EmailService {
      */
     public void handleEmails() throws IOException {
 
-        System.out.println("Начало обработки писем");
+        log.info("Начало обработки писем");
 
         // for IMAP
         String protocol = "imap";
@@ -94,9 +96,9 @@ public class EmailService {
 
             int messageCount = folderInbox.getMessageCount();
 
-            messages = folderInbox.getMessages(messageCount - 1000, messageCount);
+            messages = folderInbox.getMessages(messageCount - 200, messageCount);
 
-            System.out.println("Обработка 300 последних писем");
+            log.info("Обработка 300 последних писем");
 
             for (int i = 0; i < messages.length; i++) {
                 System.out.print(".");
@@ -119,8 +121,8 @@ public class EmailService {
                         bestDoctor.isAttachMail(from, subject)
                 )) continue;
 
-                System.out.println("\t From: " + from);
-                System.out.println("\t Subject: " + subject);
+                log.info("\t From: " + from);
+                log.info("\t Subject: " + subject);
 
                 // store attachment file name, separated by comma
                 String attachFiles = "";
@@ -134,7 +136,7 @@ public class EmailService {
                         if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
                             // this part is attachment
                             String fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
-                            System.out.println(fileName);
+                            log.info(fileName);
                             attachFiles += fileName + ", ";
 
                             if (bestDoctor.isAttachMail(from, subject)){
@@ -170,30 +172,28 @@ public class EmailService {
                 }
 
 //                // print out details of each message
-//                System.out.println();
-//                System.out.println("Message #" + (i + 1) + ":");
-//                System.out.println("\t From: " + from);
-//                System.out.println("\t To: " + toList);
-//                System.out.println("\t CC: " + ccList);
-//                System.out.println("\t Subject: " + subject);
-//                System.out.println("\t Sent Date: " + sentDate);
-//                System.out.println();
-//                System.out.println("\t Message: " + messageContent);
-//                System.out.println("\t Attachments: " + attachFiles);
+//                log.info();
+//                log.info("Message #" + (i + 1) + ":");
+//                log.info("\t From: " + from);
+//                log.info("\t To: " + toList);
+//                log.info("\t CC: " + ccList);
+//                log.info("\t Subject: " + subject);
+//                log.info("\t Sent Date: " + sentDate);
+//                log.info();
+//                log.info("\t Message: " + messageContent);
+//                log.info("\t Attachments: " + attachFiles);
             }
 
             // disconnect
             folderInbox.close(false);
             store.close();
 
-            System.out.println("Окончание обработки писем");
+            log.info("Окончание обработки писем");
 
         } catch (NoSuchProviderException ex) {
-            System.out.println("No provider for protocol: " + protocol);
-            ex.printStackTrace();
+            log.error("No provider for protocol: " + protocol, ex);
         } catch (MessagingException ex) {
-            System.out.println("Could not connect to the message store");
-            ex.printStackTrace();
+            log.error("Could not connect to the message store", ex);
         }
 
     }

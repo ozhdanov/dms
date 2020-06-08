@@ -24,8 +24,8 @@ public class PdfParser {
             parsedText = pdfStripper.getText(pdDoc);
 
 
-////            System.out.println(parsedText.replaceAll("[^A-Za-z0-9. ]+", ""));
-////            System.out.println(parsedText);
+////            log.info(parsedText.replaceAll("[^A-Za-z0-9. ]+", ""));
+////            log.info(parsedText);
 //
 //                    String fio = "";
 //
@@ -43,7 +43,7 @@ public class PdfParser {
 //                    rawO = rawO.substring(0, rawO.indexOf( " "));
 //                    fio += " " + rawO.replaceAll("\r|\n|[0-9]|[.!?\\-]|[ ]", "");
 //
-//                    System.out.println(fio);
+//                    log.info(fio);
         } catch (Exception e) {
             e.printStackTrace();
             try {
