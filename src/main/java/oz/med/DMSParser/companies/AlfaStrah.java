@@ -2,6 +2,7 @@ package oz.med.DMSParser.companies;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -102,7 +103,7 @@ public class AlfaStrah extends Company {
                         AlfaStrahModel alfaStrahModel = new AlfaStrahModel();
                         //Костыль против пробразования строки в число
                         Cell policyNumberCell = cellIterator.next();
-                        policyNumberCell.setCellType(Cell.CELL_TYPE_STRING);
+                        policyNumberCell.setCellType(CellType.STRING);
                         String policyNumber = policyNumberCell.getStringCellValue();
                         alfaStrahModel.setPolicyNumber(policyNumber);
 
@@ -192,7 +193,7 @@ public class AlfaStrah extends Company {
                         AlfaStrahModel alfaStrahModel = new AlfaStrahModel();
                         //Костыль против пробразования строки в число
                         Cell policyNumberCell = cellIterator.next();
-                        policyNumberCell.setCellType(Cell.CELL_TYPE_STRING);
+                        policyNumberCell.setCellType(CellType.STRING);
                         String policyNumber = policyNumberCell.getStringCellValue();
                         alfaStrahModel.setPolicyNumber(policyNumber);
 
@@ -238,45 +239,16 @@ public class AlfaStrah extends Company {
             // we get first sheet
             XSSFSheet sheet = workbook.getSheetAt(0);
 
-            // we iterate on rows
-            Iterator<Row> rowIt = sheet.iterator();
-
-            boolean startOfDataFlag = false;
-
-            while (rowIt.hasNext()) {
-                //Пропускаем заголовок
-                Row row = rowIt.next();
-
-                Iterator<Cell> cellIterator = row.cellIterator();
-
-                Cell cell;
-                if (!startOfDataFlag) {
-                    while (cellIterator.hasNext()) {
-                        cell = cellIterator.next();
-                        if (cell.toString().equals("№ полиса")) {
-                            startOfDataFlag = true;
-                            break;
+            for (Row row : sheet) {
+                if (row.getRowNum() > 0 && !isRowEmpty(row)) {
+                    Cell policyNumberCell = row.getCell(0);
+                    policyNumberCell.setCellType(CellType.STRING);
+                    String policyNumber = policyNumberCell.getStringCellValue();
+                    if(!policyNumber.toString().isEmpty()) {
+                        for (AlfaStrahModel customer : customers) {
+                            if (policyNumber.equals(customer.getPolicyNumber()))
+                                customer.setNew(false);
                         }
-                    }
-                    continue;
-                } else {
-                    if(cellIterator.hasNext()) {
-
-                        Cell policyNumberCell = cellIterator.next();
-
-                        if(cellIterator.hasNext() && !policyNumberCell.toString().isEmpty()){
-                            //Костыль против пробразования строки в число
-                            policyNumberCell.setCellType(Cell.CELL_TYPE_STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-                            String fio = cellIterator.next().toString();
-
-                            for (AlfaStrahModel customer : customers) {
-                                if (policyNumber.equals(customer.getPolicyNumber())
-                                        && fio.equals(customer.getFio()))
-                                    customer.setNew(false);
-                            }
-                        }
-
                     }
                 }
             }
@@ -326,51 +298,21 @@ public class AlfaStrah extends Company {
             // we get first sheet
             XSSFSheet sheet = workbook.getSheetAt(0);
 
-            // we iterate on rows
-            Iterator<Row> rowIt = sheet.iterator();
-
-            boolean startOfDataFlag = false;
-
-            while (rowIt.hasNext()) {
-                //Пропускаем заголовок
-                Row row = rowIt.next();
-
-                Iterator<Cell> cellIterator = row.cellIterator();
-
-                Cell cell;
-                if (!startOfDataFlag) {
-                    while (cellIterator.hasNext()) {
-                        cell = cellIterator.next();
-                        if (cell.toString().equals("№ полиса")) {
-                            startOfDataFlag = true;
-                            break;
-                        }
-                    }
-                    continue;
-                } else {
-                    if(cellIterator.hasNext()) {
-
-                        Cell policyNumberCell = cellIterator.next();
-
-                        if(cellIterator.hasNext() && !policyNumberCell.toString().isEmpty()) {
-                            //Костыль против пробразования строки в число
-                            policyNumberCell.setCellType(Cell.CELL_TYPE_STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-
-                            String fio = cellIterator.next().toString();
-
-                            for (AlfaStrahModel customer : customers) {
-                                if (policyNumber.equals(customer.getPolicyNumber())
-                                        && fio.equals(customer.getFio()))
-                                    listOfRowsToRemove.add(row);
-                            }
+            for (Row row : sheet) {
+                if (row.getRowNum() > 0 && !isRowEmpty(row)) {
+                    Cell policyNumberCell = row.getCell(0);
+                    policyNumberCell.setCellType(CellType.STRING);
+                    String policyNumber = policyNumberCell.getStringCellValue();
+                    if(!policyNumber.toString().isEmpty()) {
+                        for (AlfaStrahModel customer : customers) {
+                            if (policyNumber.equals(customer.getPolicyNumber()))
+                                listOfRowsToRemove.add(row);
                         }
                     }
                 }
             }
 
             for(Row row: listOfRowsToRemove){
-//                sheet.removeExcelRow(row);
                 removeExcelRow(sheet, row.getRowNum());
             }
 

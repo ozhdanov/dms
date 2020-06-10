@@ -1,20 +1,19 @@
 package oz.med.DMSParser.companies;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import oz.med.DMSParser.model.BestDoctorModel;
+import oz.med.DMSParser.model.SogazModel;
 
 import java.io.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,23 +21,23 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class BestDoctor extends Company {
+public class Sogaz extends Company {
 
     private DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
-    @Value("${bestdoctor.storage}")
+    @Value("${sogaz.storage}")
     private String storageFileUrl;
-    @Value("${bestdoctor.sender}")
+    @Value("${sogaz.sender}")
     private String senderEmailTemplate;
-    @Value("${bestdoctor.liststemplate}")
+    @Value("${sogaz.liststemplate}")
     private String listsTemplate;
-    @Value("${bestdoctor.attachlisttemplate}")
+    @Value("${sogaz.attachlisttemplate}")
     private String attachListTemplate;
-    @Value("${bestdoctor.deattachlisttemplate}")
+    @Value("${sogaz.deattachlisttemplate}")
     private String deattachListTemplate;
-    @Value("${bestdoctor.attachfiletemplate}")
+    @Value("${sogaz.attachfiletemplate}")
     private String attachFileTemplate;
-    @Value("${bestdoctor.deattachfiletemplate}")
+    @Value("${sogaz.deattachfiletemplate}")
     private String deattachFileTemplate;
 
     public boolean isListsMail(String from, String subject) {
@@ -47,7 +46,7 @@ public class BestDoctor extends Company {
     public boolean isAttachListMail(String from, String subject) {
         return this.isAttachListMail(from, subject, senderEmailTemplate, attachListTemplate);
     }
-    public boolean isDeattachListsMail(String from, String subject) {
+    public boolean isDeattachListMail(String from, String subject) {
         return this.isDeattachListsMail(from, subject, senderEmailTemplate, deattachListTemplate);
     }
     public boolean isAttachFile(String fileName) {
@@ -57,14 +56,14 @@ public class BestDoctor extends Company {
         return this.isDeattachFile(fileName, deattachFileTemplate);
     }
 
-    public List<BestDoctorModel> parseAttachListExcel(InputStream is) {
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        List<BestDoctorModel> customers = new ArrayList<>();
+    public List<SogazModel> parseAttachListExcel(InputStream is) {
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        List<SogazModel> customers = new ArrayList<>();
         try {
             // we create an XSSF Workbook object for our XLSX Excel File
-            workbook = new XSSFWorkbook(is);
+            workbook = new HSSFWorkbook(is);
             // we get first sheet
-            XSSFSheet sheet = workbook.getSheetAt(0);
+            HSSFSheet sheet = workbook.getSheetAt(0);
 
             // we iterate on rows
             Iterator<Row> rowIt = sheet.iterator();
@@ -81,7 +80,7 @@ public class BestDoctor extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        if (cell.toString().equals("№п/п")) {
+                        if (cell.toString().equals("№ п/п")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -92,37 +91,39 @@ public class BestDoctor extends Company {
 
                     cell = cellIterator.next();
 
-                    if (cell.getRowIndex() - prewRowIndex > 1) {
+                    //Ожидаем порядковый номер, а встречаем что-то длиньше
+                    if (cell.toString().length() > 3) {
                         startOfDataFlag = false;
-                        break;
+                        continue;
                     }
 
-                    DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+                    if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
+                        try {
+                            log.info("Прикрепление пациента");
+                            SogazModel inGosStrahModel = new SogazModel();
 
-                    try {
-                        log.info("Прикрепление пациента");
-                        BestDoctorModel bestDoctorModel = new BestDoctorModel();
-                        //Костыль против пробразования строки в число
-                        Cell policyNumberCell = cellIterator.next();
-                        policyNumberCell.setCellType(CellType.STRING);
-                        String policyNumber = policyNumberCell.getStringCellValue();
-                        bestDoctorModel.setPolicyNumber(policyNumber);
+                            inGosStrahModel.setSurname(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setName(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPatronymic(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setDateOfBirth(format.parse(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setSex(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setAdress(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setHomePhoneNumber(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setWorkPhoneNumber(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setMobilPhoneNumber(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPolicyNumber(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPolicyStartDate(format.parse(row.getCell(11, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setPolicyEndDate(format.parse(row.getCell(12, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setInsuranceProgram(row.getCell(13, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPlaceOfWork(row.getCell(14, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPosition(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                        bestDoctorModel.setSurname(cellIterator.next().toString());
-                        bestDoctorModel.setName(cellIterator.next().toString());
-                        bestDoctorModel.setPatronymic(cellIterator.next().toString());
-                        bestDoctorModel.setSex(cellIterator.next().toString());
-                        bestDoctorModel.setDateOfBirth(format.parse(cellIterator.next().toString()));
-                        bestDoctorModel.setAdress(cellIterator.next().toString());
-                        bestDoctorModel.setPhoneNumber(cellIterator.next().toString());
-                        bestDoctorModel.setPolicyStartDate(format.parse(cellIterator.next().toString()));
-                        bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
-                        bestDoctorModel.setPlaceOfWork(cellIterator.next().toString());
-                        log.info(bestDoctorModel.toString());
+                            log.info(inGosStrahModel.toString());
 
-                        customers.add(bestDoctorModel);
-                    } catch (ParseException e) {
-                        log.error("Ошибка парсинга строки", e);
+                            customers.add(inGosStrahModel);
+                        } catch (Exception e) {
+                            log.error("Ошибка парсинга строки", e);
+                        }
                     }
 
                 }
@@ -147,14 +148,14 @@ public class BestDoctor extends Company {
 
     }
 
-    public List<BestDoctorModel> parseDeattachListExcel(InputStream is) throws IOException {
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        List<BestDoctorModel> customers = new ArrayList<>();
+    public List<SogazModel> parseDeattachListExcel(InputStream is) throws IOException {
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        List<SogazModel> customers = new ArrayList<>();
         try {
-            // we create an XSSF Workbook object for our XLSX Excel File
-            workbook = new XSSFWorkbook(is);
+            // we create an HSSF Workbook object for our XLSX Excel File
+            workbook = new HSSFWorkbook(is);
             // we get first sheet
-            XSSFSheet sheet = workbook.getSheetAt(0);
+            HSSFSheet sheet = workbook.getSheetAt(0);
 
             // we iterate on rows
             Iterator<Row> rowIt = sheet.iterator();
@@ -172,7 +173,7 @@ public class BestDoctor extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        if (cell.toString().equals("№п/п")) {
+                        if (cell.toString().equals("№ п/п")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -183,32 +184,33 @@ public class BestDoctor extends Company {
 
                     cell = cellIterator.next();
 
-                    if (cell.getRowIndex() - prewRowIndex > 1) {
+                    //Ожидаем порядковый номер, а встречаем что-то длиньше
+                    if (cell.toString().length() > 3) {
                         startOfDataFlag = false;
-                        break;
+                        continue;
                     }
 
-                    DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+                    if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
+                        try {
+                            log.info("Открепление пациента");
 
-                    try {
-                        log.info("Открепление пациента");
-                        BestDoctorModel bestDoctorModel = new BestDoctorModel();
-                        //Костыль против пробразования строки в число
-                        Cell policyNumberCell = cellIterator.next();
-                        policyNumberCell.setCellType(CellType.STRING);
-                        String policyNumber = policyNumberCell.getStringCellValue();
-                        bestDoctorModel.setPolicyNumber(policyNumber);
-                        bestDoctorModel.setSurname(cellIterator.next().toString());
-                        bestDoctorModel.setName(cellIterator.next().toString());
-                        bestDoctorModel.setPatronymic(cellIterator.next().toString());
-                        bestDoctorModel.setSex(cellIterator.next().toString());
-                        bestDoctorModel.setDateOfBirth(format.parse(cellIterator.next().toString()));
-                        bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
-                        log.info(bestDoctorModel.toString());
+                            SogazModel inGosStrahModel = new SogazModel();
 
-                        customers.add(bestDoctorModel);
-                    } catch (ParseException e) {
-                        log.error("Ошибка парсинга строки", e);
+                            inGosStrahModel.setSurname(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setName(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPatronymic(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setDateOfBirth(format.parse(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setPolicyNumber(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPolicyEndDate(format.parse(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setInsuranceProgram(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPlaceOfWork(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+
+                            log.info(inGosStrahModel.toString());
+
+                            customers.add(inGosStrahModel);
+                        } catch (Exception e) {
+                            log.error("Ошибка парсинга строки", e);
+                        }
                     }
 
                 }
@@ -231,7 +233,7 @@ public class BestDoctor extends Company {
 
     }
 
-    public void addCustomersToFile(List<BestDoctorModel> customers) {
+    public void addCustomersToFile(List<SogazModel> customers) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -244,11 +246,10 @@ public class BestDoctor extends Company {
 
             for (Row row : sheet) {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(0);
-                    policyNumberCell.setCellType(CellType.STRING);
+                    Cell policyNumberCell = row.getCell(9);
                     String policyNumber = policyNumberCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
-                        for (BestDoctorModel customer : customers) {
+                        for (SogazModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()))
                                 customer.setNew(false);
                         }
@@ -256,30 +257,31 @@ public class BestDoctor extends Company {
                 }
             }
 
-            for (BestDoctorModel customer : customers) {
+            for (SogazModel customer : customers) {
                 if (customer.isNew()) {
                     XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
-                    row.createCell(0).setCellValue(customer.getPolicyNumber());
-                    row.createCell(1).setCellValue(customer.getSurname());
-                    row.createCell(2).setCellValue(customer.getName());
-                    row.createCell(3).setCellValue(customer.getPatronymic());
+                    row.createCell(0).setCellValue(customer.getSurname());
+                    row.createCell(1).setCellValue(customer.getName());
+                    row.createCell(2).setCellValue(customer.getPatronymic());
+                    row.createCell(3).setCellValue(format.format(customer.getDateOfBirth()));
                     row.createCell(4).setCellValue(customer.getSex());
-                    row.createCell(5).setCellValue(format.format(customer.getDateOfBirth()));
-                    row.createCell(6).setCellValue(customer.getAdress());
-                    row.createCell(7).setCellValue(customer.getPhoneNumber());
-                    row.createCell(8).setCellValue(format.format(customer.getPolicyStartDate()));
-                    row.createCell(9).setCellValue(format.format(customer.getPolicyEndDate()));
-                    row.createCell(10).setCellValue(customer.getPlaceOfWork());
+                    row.createCell(5).setCellValue(customer.getAdress());
+                    row.createCell(6).setCellValue(customer.getHomePhoneNumber());
+                    row.createCell(7).setCellValue(customer.getWorkPhoneNumber());
+                    row.createCell(8).setCellValue(customer.getMobilPhoneNumber());
+                    row.createCell(9).setCellValue(customer.getPolicyNumber());
+                    row.createCell(10).setCellValue(format.format(customer.getPolicyStartDate()));
+                    row.createCell(11).setCellValue(format.format(customer.getPolicyEndDate()));
+                    row.createCell(12).setCellValue(customer.getInsuranceProgram());
+                    row.createCell(13).setCellValue(customer.getPlaceOfWork());
+                    row.createCell(14).setCellValue(customer.getPosition());
                 }
             }
 
             FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
             workbook.write(outputStream);
-            workbook.close();
             outputStream.close();
 
-            workbook.close();
-            inputStream.close();
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);
         } finally {
@@ -292,7 +294,7 @@ public class BestDoctor extends Company {
 
     }
 
-    public void removeCustomersFromFile(List<BestDoctorModel> customers) {
+    public void removeCustomersFromFile(List<SogazModel> customers) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -306,11 +308,10 @@ public class BestDoctor extends Company {
 
             for (Row row : sheet) {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(0);
-                    policyNumberCell.setCellType(CellType.STRING);
+                    Cell policyNumberCell = row.getCell(9);
                     String policyNumber = policyNumberCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
-                        for (BestDoctorModel customer : customers) {
+                        for (SogazModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()))
                                 listOfRowsToRemove.add(row);
                         }

@@ -5,12 +5,9 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import oz.med.DMSParser.companies.AlfaStrah;
-import oz.med.DMSParser.companies.BestDoctor;
-import oz.med.DMSParser.companies.RosGosStrah;
-import oz.med.DMSParser.model.AlfaStrahModel;
-import oz.med.DMSParser.model.BestDoctorModel;
-import oz.med.DMSParser.model.RosGosStrahModel;
+import oz.med.DMSParser.companies.*;
+import oz.med.DMSParser.model.*;
+import ru.CryptoPro.JCP.Cipher.InGostCipher;
 
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
@@ -24,7 +21,7 @@ import java.util.Properties;
 @Slf4j
 public class EmailService {
 
-    @Value("${mailslistsize}")
+    @Value("${mailsListSize}")
     private Integer mailsListSize;
 
     private String saveDirectory = "D:\\temp\\mail";
@@ -41,6 +38,12 @@ public class EmailService {
     AlfaStrah alfaStrah;
     @Autowired
     RosGosStrah rosGosStrah;
+    @Autowired
+    InGosStrah inGosStrah;
+    @Autowired
+    Absolut absolut;
+    @Autowired
+    Sogaz sogaz;
 
     /**
      * Returns a Properties object which is configured for a POP3/IMAP server
@@ -127,13 +130,16 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-//                        bestDoctor.isListsMail(from, subject) ||
-//                        alfaStrah.isListsMail(from, subject) ||
-                        rosGosStrah.isListsMail(from, subject)
+                        bestDoctor.isListsMail(from, subject) ||
+                                alfaStrah.isListsMail(from, subject) ||
+                                rosGosStrah.isListsMail(from, subject) ||
+                                inGosStrah.isListsMail(from, subject) ||
+                                absolut.isListsMail(from, subject) ||
+                                sogaz.isListsMail(from, subject)
                 )) continue;
 
-                log.info("\t From: " + from);
-                log.info("\t Subject: " + subject);
+//                log.info("\t From: " + from);
+//                log.info("\t Subject: " + subject);
 
                 // store attachment file name, separated by comma
                 String attachFiles = "";
@@ -148,11 +154,17 @@ public class EmailService {
                                 || Part.INLINE.equalsIgnoreCase(part.getDisposition())
                                 || (part.getDisposition() == null && part.getFileName() != null)) {
                             String fileName = "";
-                            if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+
+                            //У всех файл прикреплен по разному и разные кодировки
+                            if((inGosStrah.isListsMail(from, subject) || absolut.isListsMail(from, subject) || sogaz.isListsMail(from, subject))
+                                    && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+                                fileName = MimeUtility.decodeText(part.getFileName());
+                            else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
                                 fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
                             else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
                                 fileName = MimeUtility.decodeText(part.getFileName());
                             log.info(fileName);
+
                             attachFiles += fileName + ", ";
 
                             //БэстДоктор
@@ -162,19 +174,19 @@ public class EmailService {
                                     bestDoctor.addCustomersToFile(bestDoctorModels);
                                 } else if (bestDoctor.isDeattachFile(fileName)) {
                                     List<BestDoctorModel> bestDoctorModels = bestDoctor.parseDeattachListExcel(part.getInputStream());
-                                    bestDoctor.removeCustomersFromFile(bestDoctorModels);
+                                    if (bestDoctorModels.size() > 0) bestDoctor.removeCustomersFromFile(bestDoctorModels);
                                 }
                             }
                             //Альфа
                             else if (alfaStrah.isAttachListMail(from, subject)) {
                                 if (alfaStrah.isAttachFile(fileName)) {
-                                    List<AlfaStrahModel> alfaStrahModel = alfaStrah.parseAttachListExcel(part.getInputStream());
-                                    alfaStrah.addCustomersToFile(alfaStrahModel);
+                                    List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseAttachListExcel(part.getInputStream());
+                                    alfaStrah.addCustomersToFile(alfaStrahModels);
                                 }
                             } else if (alfaStrah.isDeattachListMail(from, subject)) {
                                 if (alfaStrah.isDeattachFile(fileName)) {
-                                    List<AlfaStrahModel> alfaStrahModel = alfaStrah.parseDeattachListExcel(part.getInputStream());
-                                    alfaStrah.removeCustomersFromFile(alfaStrahModel);
+                                    List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseDeattachListExcel(part.getInputStream());
+                                    if (alfaStrahModels.size() > 0) alfaStrah.removeCustomersFromFile(alfaStrahModels);
                                 }
                             }
                             //РосГосСтрах
@@ -184,7 +196,43 @@ public class EmailService {
                                     rosGosStrah.addCustomersToFile(rosGosStrahModels);
                                 } else if (rosGosStrah.isDeattachFile(fileName)) {
                                     List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseDeattachListExcel(part.getInputStream());
-                                    rosGosStrah.removeCustomersFromFile(rosGosStrahModels);
+                                    if (rosGosStrahModels.size() > 0) rosGosStrah.removeCustomersFromFile(rosGosStrahModels);
+                                }
+                            }
+                            //ИнГосСтрах
+                            else if (inGosStrah.isAttachListMail(from, subject)) {
+                                if (inGosStrah.isAttachFile(fileName)) {
+                                    List<InGosStrahModel> inGosStrahModels = inGosStrah.parseAttachListExcel(part.getInputStream());
+                                    inGosStrah.addCustomersToFile(inGosStrahModels);
+                                }
+                            } else if (inGosStrah.isDeattachListMail(from, subject)) {
+                                if (inGosStrah.isDeattachFile(fileName)) {
+                                    List<InGosStrahModel> inGosStrahModels = inGosStrah.parseDeattachListExcel(part.getInputStream());
+                                    if (inGosStrahModels.size() > 0) inGosStrah.removeCustomersFromFile(inGosStrahModels);
+                                }
+                            }
+                            //Абсолют
+                            else if (absolut.isAttachListMail(from, subject)) {
+                                if (absolut.isAttachFile(fileName)) {
+                                    List<AbsolutModel> absolutModels = absolut.parseAttachListExcel(part.getInputStream());
+                                    absolut.addCustomersToFile(absolutModels);
+                                }
+                            } else if (absolut.isDeattachListMail(from, subject)) {
+                                if (absolut.isDeattachFile(fileName)) {
+                                    List<AbsolutModel> absolutModels = absolut.parseDeattachListExcel(part.getInputStream());
+                                    if (absolutModels.size() > 0) absolut.removeCustomersFromFile(absolutModels);
+                                }
+                            }
+                            //Согаз
+                            else if (sogaz.isAttachListMail(from, subject)) {
+                                if (sogaz.isAttachFile(fileName)) {
+                                    List<SogazModel> sogazModels = sogaz.parseAttachListExcel(part.getInputStream());
+                                    sogaz.addCustomersToFile(sogazModels);
+                                }
+                            } else if (sogaz.isDeattachListMail(from, subject)) {
+                                if (sogaz.isDeattachFile(fileName)) {
+                                    List<SogazModel> sogazModels = sogaz.parseDeattachListExcel(part.getInputStream());
+                                    if (sogazModels.size() > 0) sogaz.removeCustomersFromFile(sogazModels);
                                 }
                             }
 

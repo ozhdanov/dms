@@ -1,47 +1,43 @@
 package oz.med.DMSParser.companies;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import oz.med.DMSParser.model.RosGosStrahModel;
+import oz.med.DMSParser.model.InGosStrahModel;
 
 import java.io.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 @Service
 @Slf4j
-public class RosGosStrah extends Company {
+public class InGosStrah extends Company {
 
     private DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
-    @Value("${rosgosstrah.storage}")
+    @Value("${ingosstrah.storage}")
     private String storageFileUrl;
-    @Value("${rosgosstrah.sender}")
+    @Value("${ingosstrah.sender}")
     private String senderEmailTemplate;
-    @Value("${rosgosstrah.liststemplate}")
+    @Value("${ingosstrah.liststemplate}")
     private String listsTemplate;
-    @Value("${rosgosstrah.attachlisttemplate}")
+    @Value("${ingosstrah.attachlisttemplate}")
     private String attachListTemplate;
-    @Value("${rosgosstrah.deattachlisttemplate}")
+    @Value("${ingosstrah.deattachlisttemplate}")
     private String deattachListTemplate;
-    @Value("${rosgosstrah.attachfiletemplate}")
+    @Value("${ingosstrah.attachfiletemplate}")
     private String attachFileTemplate;
-    @Value("${rosgosstrah.deattachfiletemplate}")
+    @Value("${ingosstrah.deattachfiletemplate}")
     private String deattachFileTemplate;
 
     public boolean isListsMail(String from, String subject) {
@@ -60,9 +56,9 @@ public class RosGosStrah extends Company {
         return this.isDeattachFile(fileName, deattachFileTemplate);
     }
 
-    public List<RosGosStrahModel> parseAttachListExcel(InputStream is) {
+    public List<InGosStrahModel> parseAttachListExcel(InputStream is) {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        List<RosGosStrahModel> customers = new ArrayList<>();
+        List<InGosStrahModel> customers = new ArrayList<>();
         try {
             // we create an XSSF Workbook object for our XLSX Excel File
             workbook = new HSSFWorkbook(is);
@@ -74,7 +70,6 @@ public class RosGosStrah extends Company {
 
             boolean startOfDataFlag = false;
             int prewRowIndex = 0;
-            String validity = null;
 
             while (rowIt.hasNext()) {
                 Row row = rowIt.next();
@@ -85,11 +80,7 @@ public class RosGosStrah extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        //Вытаскиваем сроки страхования
-                        if (cell.toString().contains("Срок страхования")) {
-                            validity = cell.toString().substring(cell.toString().indexOf("\n") + 1, cell.toString().indexOf("Страхователь") - 1);
-                            break;
-                        } else if (cell.toString().equals("№ п/п")) {
+                        if (cell.toString().equals("п/п")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -109,24 +100,28 @@ public class RosGosStrah extends Company {
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
                             log.info("Прикрепление пациента");
-                            RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
+                            InGosStrahModel inGosStrahModel = new InGosStrahModel();
 
-                            rosGosStrahModel.setFio(cellIterator.next().toString());
-                            rosGosStrahModel.setSex(cellIterator.next().toString());
-                            rosGosStrahModel.setDateOfBirth(cellIterator.next().getDateCellValue());
-                            rosGosStrahModel.setAdress(cellIterator.next().toString());
-                            rosGosStrahModel.setPhoneNumber(cellIterator.next().toString());
-                            rosGosStrahModel.setValidity(validity);
+                            inGosStrahModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setSurname(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setName(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPatronymic(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setDateOfBirth(format.parse(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setSex(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setAdressAndPhoneNumber(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setNote(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPlan(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setInsuranceProgram(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPolicyStartDate(format.parse(row.getCell(11, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setPolicyEndDate(format.parse(row.getCell(12, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setInsuranceNote(row.getCell(13, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setInsuranceExtension(row.getCell(14, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setLimitations(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setCharacteristic(row.getCell(16, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            //Костыль против пробразования строки в число
-                            Cell policyNumberCell = cellIterator.next();
-                            policyNumberCell.setCellType(CellType.STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-                            rosGosStrahModel.setPolicyNumber(policyNumber);
+                            log.info(inGosStrahModel.toString());
 
-                            log.info(rosGosStrahModel.toString());
-
-                            customers.add(rosGosStrahModel);
+                            customers.add(inGosStrahModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
@@ -154,9 +149,9 @@ public class RosGosStrah extends Company {
 
     }
 
-    public List<RosGosStrahModel> parseDeattachListExcel(InputStream is) throws IOException {
+    public List<InGosStrahModel> parseDeattachListExcel(InputStream is) throws IOException {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        List<RosGosStrahModel> customers = new ArrayList<>();
+        List<InGosStrahModel> customers = new ArrayList<>();
         try {
             // we create an HSSF Workbook object for our XLSX Excel File
             workbook = new HSSFWorkbook(is);
@@ -179,7 +174,7 @@ public class RosGosStrah extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        if (cell.toString().equals("№ п/п")) {
+                        if (cell.toString().equals("п/п")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -200,20 +195,28 @@ public class RosGosStrah extends Company {
                         try {
                             log.info("Открепление пациента");
 
-                            RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
+                            InGosStrahModel inGosStrahModel = new InGosStrahModel();
 
-                            rosGosStrahModel.setFio(cellIterator.next().toString());
-                            rosGosStrahModel.setSex(cellIterator.next().toString());
-                            rosGosStrahModel.setDateOfBirth(cellIterator.next().getDateCellValue());
-                            //Костыль против пробразования строки в число
-                            Cell policyNumberCell = cellIterator.next();
-                            policyNumberCell.setCellType(CellType.STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-                            rosGosStrahModel.setPolicyNumber(policyNumber);
+                            inGosStrahModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setSurname(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setName(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPatronymic(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setDateOfBirth(format.parse(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setSex(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setAdressAndPhoneNumber(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setNote(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPlan(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setInsuranceProgram(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setPolicyStartDate(format.parse(row.getCell(11, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setPolicyEndDate(format.parse(row.getCell(12, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+                            inGosStrahModel.setInsuranceNote(row.getCell(13, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setInsuranceExtension(row.getCell(14, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setLimitations(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            inGosStrahModel.setCharacteristic(row.getCell(16, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(rosGosStrahModel.toString());
+                            log.info(inGosStrahModel.toString());
 
-                            customers.add(rosGosStrahModel);
+                            customers.add(inGosStrahModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
@@ -239,7 +242,7 @@ public class RosGosStrah extends Company {
 
     }
 
-    public void addCustomersToFile(List<RosGosStrahModel> customers) {
+    public void addCustomersToFile(List<InGosStrahModel> customers) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -252,10 +255,10 @@ public class RosGosStrah extends Company {
 
             for (Row row : sheet) {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(5);
+                    Cell policyNumberCell = row.getCell(0);
                     String policyNumber = policyNumberCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
-                        for (RosGosStrahModel customer : customers) {
+                        for (InGosStrahModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()))
                                 customer.setNew(false);
                         }
@@ -263,26 +266,32 @@ public class RosGosStrah extends Company {
                 }
             }
 
-            for (RosGosStrahModel customer : customers) {
+            for (InGosStrahModel customer : customers) {
                 if (customer.isNew()) {
                     XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
-                    row.createCell(0).setCellValue(customer.getFio());
-                    row.createCell(1).setCellValue(customer.getSex());
-                    if(customer.getDateOfBirth() != null) row.createCell(2).setCellValue(format.format(customer.getDateOfBirth()));
-                    row.createCell(3).setCellValue(customer.getAdress());
-                    row.createCell(4).setCellValue(customer.getPhoneNumber());
-                    row.createCell(5).setCellValue(customer.getPolicyNumber());
-                    row.createCell(6).setCellValue(customer.getValidity());
+                    row.createCell(0).setCellValue(customer.getPolicyNumber());
+                    row.createCell(1).setCellValue(customer.getSurname());
+                    row.createCell(2).setCellValue(customer.getName());
+                    row.createCell(3).setCellValue(customer.getPatronymic());
+                    row.createCell(4).setCellValue(format.format(customer.getDateOfBirth()));
+                    row.createCell(5).setCellValue(customer.getSex());
+                    row.createCell(6).setCellValue(customer.getAdressAndPhoneNumber());
+                    row.createCell(7).setCellValue(customer.getNote());
+                    row.createCell(8).setCellValue(customer.getPlan());
+                    row.createCell(9).setCellValue(customer.getInsuranceProgram());
+                    row.createCell(10).setCellValue(format.format(customer.getPolicyStartDate()));
+                    row.createCell(11).setCellValue(format.format(customer.getPolicyEndDate()));
+                    row.createCell(12).setCellValue(customer.getInsuranceNote());
+                    row.createCell(13).setCellValue(customer.getInsuranceExtension());
+                    row.createCell(14).setCellValue(customer.getLimitations());
+                    row.createCell(15).setCellValue(customer.getCharacteristic());
                 }
             }
 
             FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
             workbook.write(outputStream);
-            workbook.close();
             outputStream.close();
 
-            workbook.close();
-            inputStream.close();
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);
         } finally {
@@ -295,7 +304,7 @@ public class RosGosStrah extends Company {
 
     }
 
-    public void removeCustomersFromFile(List<RosGosStrahModel> customers) {
+    public void removeCustomersFromFile(List<InGosStrahModel> customers) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -309,10 +318,10 @@ public class RosGosStrah extends Company {
 
             for (Row row : sheet) {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(5);
+                    Cell policyNumberCell = row.getCell(0);
                     String policyNumber = policyNumberCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
-                        for (RosGosStrahModel customer : customers) {
+                        for (InGosStrahModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()))
                                 listOfRowsToRemove.add(row);
                         }

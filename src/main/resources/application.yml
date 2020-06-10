@@ -11,7 +11,6 @@ spring:
 
 logging:
   level:org:springframework:web: INFO
-  level:net:guides: DEBUG
   file:name: logs/dms.log
 
 mail:
@@ -21,32 +20,63 @@ mail:
 file:download:location: D:\\temp\\mail
 mail:folder:name: FOO
 
-mailslistsize: 450
+mailsListSize: 900
 
 bestdoctor:
-  storage: D:\\temp\\mail\\BestDoctor.xlsx
-  sender: list@bestdoctor.ru
-  liststemplate: СПИСКИ
-  attachlisttemplate: ПРИКРЕПЛЕНИЕ
-  deattachlisttemplate: ОТКРЕПЛЕНИЕ
-  attachfiletemplate: ПРИКРЕПЛЕНИЕ
-  deattachfiletemplate: ОТКРЕПЛЕНИЕ
+  storage: "D:\\temp\\mail\\BestDoctor.xlsx"
+  sender: "list@bestdoctor.ru"
+  liststemplate: "СПИСКИ"
+  attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
+  deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
+  attachfiletemplate: "ПРИКРЕПЛЕНИЕ"
+  deattachfiletemplate: "ОТКРЕПЛЕНИЕ"
 
 alfastrah:
-  storage: D:\\temp\\mail\\AlfaStrah.xlsx
-  sender: avis@alfastrah.ru
-  liststemplate: СПИСКИ
-  attachlisttemplate: ПРИКРЕПЛЕНИЕ
-  deattachlisttemplate: ОТКРЕПЛЕНИЕ
-  attachfiletemplate: prikr
-  deattachfiletemplate: snyat
+  storage: "D:\\temp\\mail\\AlfaStrah.xlsx"
+  sender: "avis@alfastrah.ru"
+  liststemplate: "СПИСКИ"
+  attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
+  deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
+  attachfiletemplate: "prikr"
+  deattachfiletemplate: "snyat"
 
 rosgosstrah:
-  storage: D:\\temp\\mail\\RosGosStrah.xlsx
-  sender: spiski@rgs.ru
-  liststemplate: СПИСОК ЗАСТРАХОВАННЫХ
+  storage: "D:\\temp\\mail\\RosGosStrah.xlsx"
+  sender: "spiski@rgs.ru"
+  liststemplate: "СПИСОК ЗАСТРАХОВАННЫХ"
   attachlisttemplate:
   deattachlisttemplate:
   attachfiletemplate: " ПР "
   deattachfiletemplate: " ОТКР "
+
+ingosstrah:
+  storage: "D:\\temp\\mail\\InGosStrah.xlsx"
+  sender: "@ingos.ru"
+  liststemplate: "СПИСКИ"
+  attachlisttemplate: "ПРИКРЕПЛЕНИЯ"
+  deattachlisttemplate: "ОТКРЕПЛЕНИЯ"
+  attachfiletemplate: ".XLS"
+  deattachfiletemplate: "ОТКР"
+
+absolut:
+  storage: "D:\\temp\\mail\\Absolut.xlsx"
+  sender: "@absolutins.ru"
+  liststemplate: "СПИСОК"
+  attachlisttemplate: "ПРИНЯТИЕ"
+  attachlisttemplate2: "ПРИКРЕПЛЕНИЕ"
+  deattachlisttemplate: "СНЯТИЕ"
+  deattachlisttemplate2: "ОТКРЕПЛЕНИЕ"
+  attachfiletemplate: "ПРИНЯТИЕ"
+  attachfiletemplate2: "ПРИКРЕПЛЕНИЕ"
+  deattachfiletemplate: "ОТКРЕПЛЕНИЕ"
+  deattachfiletemplate2: "СНЯТИЕ"
+
+sogaz:
+  storage: "D:\\temp\\mail\\Sogaz.xlsx"
+  sender: "robotlpu@sogaz.ru"
+  liststemplate: "СПИСКИ"
+  attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
+  deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
+  attachfiletemplate: ".XLS"
+  deattachfiletemplate: ".XLS"
 

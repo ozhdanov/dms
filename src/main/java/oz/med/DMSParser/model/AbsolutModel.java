@@ -5,16 +5,15 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class RosGosStrahModel {
+public class AbsolutModel {
 
     String policyNumber;
     String fio;
-    Date dateOfBirth;
+    String dateOfBirth;
     String adress;
-    String phoneNumber;
-    String sex;
-    Date deattachDate;
     String validity;
+    String insuranceProgram;
+    String insurant;
     boolean isNew = true;
 
 }

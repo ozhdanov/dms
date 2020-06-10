@@ -1,5 +1,7 @@
 package oz.med.DMSParser.companies;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.stereotype.Service;
@@ -8,21 +10,21 @@ import org.springframework.stereotype.Service;
 public class Company {
 
     public boolean isListsMail(String from, String subject, String senderEmailTemplate, String listsTemplate) {
-        if (from.contains(senderEmailTemplate) && subject.toUpperCase().contains(listsTemplate.toUpperCase()))
+        if (from.toUpperCase().contains(senderEmailTemplate.toUpperCase()) && subject.toUpperCase().contains(listsTemplate.toUpperCase()))
             return true;
         else
             return false;
     }
 
     public boolean isAttachListMail(String from, String subject, String senderEmailTemplate, String attachListsTemplate) {
-        if (from.contains(senderEmailTemplate) && subject.toUpperCase().contains(attachListsTemplate.toUpperCase()))
+        if (from.toUpperCase().contains(senderEmailTemplate.toUpperCase()) && subject.toUpperCase().contains(attachListsTemplate.toUpperCase()))
             return true;
         else
             return false;
     }
 
     public boolean isDeattachListsMail(String from, String subject, String senderEmailTemplate, String deattachListsTemplate) {
-        if (from.contains(senderEmailTemplate) && subject.toUpperCase().contains(deattachListsTemplate.toUpperCase()))
+        if (from.toUpperCase().contains(senderEmailTemplate.toUpperCase()) && subject.toUpperCase().contains(deattachListsTemplate.toUpperCase()))
             return true;
         else
             return false;
@@ -53,6 +55,31 @@ public class Company {
                 sheet.removeRow(removingRow);
             }
         }
+    }
+
+//    public boolean isRowEmpty(Row row) {
+//        for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
+//            Cell cell = row.getCell(c);
+//            if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
+//                return false;
+//        }
+//        return true;
+//    }
+
+    public boolean isRowEmpty(Row row) {
+        boolean isEmpty = true;
+        DataFormatter dataFormatter = new DataFormatter();
+
+        if (row != null) {
+            for (Cell cell : row) {
+                if (dataFormatter.formatCellValue(cell).trim().length() > 0) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+        }
+
+        return isEmpty;
     }
 
 }
