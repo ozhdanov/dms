@@ -1,13 +1,28 @@
 package oz.med.DMSParser.companies;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import oz.med.DMSParser.model.AbsolutModel;
+import oz.med.DMSParser.services.MyTrayIcon;
+
+import java.awt.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
+@Slf4j
 public class Company {
+
+    @Autowired
+    MyTrayIcon myTrayIcon;
 
     public boolean isListsMail(String from, String subject, String senderEmailTemplate, String listsTemplate) {
         if (from.toUpperCase().contains(senderEmailTemplate.toUpperCase()) && subject.toUpperCase().contains(listsTemplate.toUpperCase()))
@@ -44,6 +59,53 @@ public class Company {
             return false;
     }
 
+    public void removeCustomerFromFile(String storageFileUrl, String policyNumber, int cellNumber) {
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        FileInputStream inputStream = null;
+        List<Row> listOfRowsToRemove = new ArrayList<>();
+        try {
+            inputStream = new FileInputStream(new File(storageFileUrl));
+            // we create an XSSF Workbook object for our XLSX Excel File
+            workbook = new XSSFWorkbook(inputStream);
+            // we get first sheet
+            XSSFSheet sheet = workbook.getSheetAt(0);
+
+            for (Row row : sheet) {
+                if (row.getRowNum() > 0
+                        && !isRowEmpty(row)
+                        && !row.getCell(cellNumber).getStringCellValue().isEmpty()
+                        && row.getCell(cellNumber).getStringCellValue().equals(policyNumber)) {
+                    listOfRowsToRemove.add(row);
+                    break;
+                }
+            }
+
+            for(Row row: listOfRowsToRemove){
+                removeExcelRow(sheet, row.getRowNum());
+            }
+
+            FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
+            workbook.write(outputStream);
+            workbook.close();
+            outputStream.close();
+
+            workbook.close();
+            inputStream.close();
+        } catch (FileNotFoundException e) {
+            log.error("Процесс не может получить доступ к файлу", e);
+            myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
+        } catch (IOException e) {
+            log.error("Не удалось распарсить документ", e);
+        } finally {
+            try {
+                workbook.close();
+                inputStream.close();
+            } catch (Exception e) {
+            }
+        }
+    }
+
     public void removeExcelRow(Sheet sheet, int rowIndex) {
         int lastRowNum = sheet.getLastRowNum();
         if (rowIndex >= 0 && rowIndex < lastRowNum) {
@@ -56,15 +118,6 @@ public class Company {
             }
         }
     }
-
-//    public boolean isRowEmpty(Row row) {
-//        for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
-//            Cell cell = row.getCell(c);
-//            if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
-//                return false;
-//        }
-//        return true;
-//    }
 
     public boolean isRowEmpty(Row row) {
         boolean isEmpty = true;

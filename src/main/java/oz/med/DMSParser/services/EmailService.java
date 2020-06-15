@@ -12,8 +12,10 @@ import ru.CryptoPro.JCP.Cipher.InGostCipher;
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeUtility;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Properties;
 
@@ -25,6 +27,9 @@ public class EmailService {
     private Integer mailsListSize;
 
     private String saveDirectory = "D:\\temp\\mail";
+
+    @Autowired
+    MyTrayIcon myTrayIcon;
 
     @Autowired
     PdfParser pdfParser;
@@ -44,6 +49,11 @@ public class EmailService {
     Absolut absolut;
     @Autowired
     Sogaz sogaz;
+    @Autowired
+    Reso reso;
+
+    public static int attachCount = 0;
+    public static int deattachCount = 0;
 
     /**
      * Returns a Properties object which is configured for a POP3/IMAP server
@@ -82,6 +92,9 @@ public class EmailService {
     public void handleEmails() throws IOException {
 
         log.info("Начало обработки писем");
+
+        attachCount = 0;
+        deattachCount = 0;
 
         // for IMAP
         String protocol = "imap";
@@ -130,12 +143,13 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-                        bestDoctor.isListsMail(from, subject) ||
-                                alfaStrah.isListsMail(from, subject) ||
-                                rosGosStrah.isListsMail(from, subject) ||
-                                inGosStrah.isListsMail(from, subject) ||
-                                absolut.isListsMail(from, subject) ||
-                                sogaz.isListsMail(from, subject)
+//                        bestDoctor.isListsMail(from, subject) ||
+//                                alfaStrah.isListsMail(from, subject)
+//                                rosGosStrah.isListsMail(from, subject) ||
+//                                inGosStrah.isListsMail(from, subject) ||
+//                                absolut.isListsMail(from, subject) ||
+//                                sogaz.isListsMail(from, subject)
+                                reso.isListsMail(from, subject)
                 )) continue;
 
 //                log.info("\t From: " + from);
@@ -163,7 +177,6 @@ public class EmailService {
                                 fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
                             else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
                                 fileName = MimeUtility.decodeText(part.getFileName());
-                            log.info(fileName);
 
                             attachFiles += fileName + ", ";
 
@@ -235,6 +248,18 @@ public class EmailService {
                                     if (sogazModels.size() > 0) sogaz.removeCustomersFromFile(sogazModels);
                                 }
                             }
+                            //Ресо
+                            else if (reso.isAttachListMail(from, subject)) {
+                                if (reso.isAttachFile(fileName)) {
+                                    List<ResoModel> resoModels = reso.parseAttachListRTF(part.getInputStream());
+                                    reso.addCustomersToFile(resoModels);
+                                }
+                            } else if (reso.isDeattachListMail(from, subject)) {
+                                if (reso.isDeattachFile(fileName)) {
+                                    List<ResoModel> resoModels = reso.parseDeattachListExcel(part.getInputStream());
+                                    if (resoModels.size() > 0) reso.removeCustomersFromFile(resoModels);
+                                }
+                            }
 
 
                             //todo
@@ -274,6 +299,11 @@ public class EmailService {
             // disconnect
             folderInbox.close(false);
             store.close();
+
+            if (attachCount > 0)
+                myTrayIcon.displayMessage("ДМС", "Прикреплено " + attachCount + " пациентов", TrayIcon.MessageType.INFO);
+            if (deattachCount > 0)
+                myTrayIcon.displayMessage("ДМС", "Откреплено " + deattachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             log.info("Окончание обработки писем");
 

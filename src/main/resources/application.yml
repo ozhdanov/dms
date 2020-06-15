@@ -9,9 +9,11 @@ spring:
         smtp: auth=true
         starttls: enable=true
 
-logging:
-  level:org:springframework:web: INFO
-  file:name: logs/dms.log
+#logging:
+#  level:
+#    org:springframework:web: INFO
+#  file:name: logs/dms.log
+
 
 mail:
   mime:encodeparameters: false
@@ -20,7 +22,7 @@ mail:
 file:download:location: D:\\temp\\mail
 mail:folder:name: FOO
 
-mailsListSize: 900
+mailsListSize: 170
 
 bestdoctor:
   storage: "D:\\temp\\mail\\BestDoctor.xlsx"
@@ -79,4 +81,13 @@ sogaz:
   deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
   attachfiletemplate: ".XLS"
   deattachfiletemplate: ".XLS"
+
+reso:
+  storage: "D:\\temp\\mail\\Reso.xlsx"
+  sender: "mural@reso.ru"
+  liststemplate: "РЕСО-Гарантия"
+  attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
+  deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
+  attachfiletemplate: ".RTF"
+  deattachfiletemplate: ".RTF"
 

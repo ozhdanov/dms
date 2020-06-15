@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.InGosStrahModel;
 
+import java.awt.*;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -291,7 +292,9 @@ public class InGosStrah extends Company {
             FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
             workbook.write(outputStream);
             outputStream.close();
-
+        } catch (FileNotFoundException e) {
+            log.error("Процесс не может получить доступ к файлу", e);
+            myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);
         } finally {
@@ -305,49 +308,8 @@ public class InGosStrah extends Company {
     }
 
     public void removeCustomersFromFile(List<InGosStrahModel> customers) {
-
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        FileInputStream inputStream = null;
-        List<Row> listOfRowsToRemove = new ArrayList<>();
-        try {
-            inputStream = new FileInputStream(new File(storageFileUrl));
-            // we create an XSSF Workbook object for our XLSX Excel File
-            workbook = new XSSFWorkbook(inputStream);
-            // we get first sheet
-            XSSFSheet sheet = workbook.getSheetAt(0);
-
-            for (Row row : sheet) {
-                if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(0);
-                    String policyNumber = policyNumberCell.getStringCellValue();
-                    if(!policyNumber.toString().isEmpty()) {
-                        for (InGosStrahModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()))
-                                listOfRowsToRemove.add(row);
-                        }
-                    }
-                }
-            }
-
-            for(Row row: listOfRowsToRemove){
-                removeExcelRow(sheet, row.getRowNum());
-            }
-
-            FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
-            workbook.write(outputStream);
-            workbook.close();
-            outputStream.close();
-
-            workbook.close();
-            inputStream.close();
-        } catch (IOException e) {
-            log.error("Не удалось распарсить документ", e);
-        } finally {
-            try {
-                workbook.close();
-                inputStream.close();
-            } catch (Exception e) {
-            }
+        for (InGosStrahModel customer : customers) {
+            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 
