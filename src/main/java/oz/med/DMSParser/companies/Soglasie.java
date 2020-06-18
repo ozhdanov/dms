@@ -1,49 +1,44 @@
 package oz.med.DMSParser.companies;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import oz.med.DMSParser.model.InGosStrahModel;
-import oz.med.DMSParser.model.RosGosStrahModel;
+import oz.med.DMSParser.model.SoglasieModel;
 
 import java.awt.*;
 import java.io.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 @Service
 @Slf4j
-public class RosGosStrah extends Company {
+public class Soglasie extends Company {
 
     private DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
-    @Value("${rosgosstrah.storage}")
+    @Value("${soglasie.storage}")
     private String storageFileUrl;
-    @Value("${rosgosstrah.sender}")
+    @Value("${soglasie.sender}")
     private String senderEmailTemplate;
-    @Value("${rosgosstrah.liststemplate}")
+    @Value("${soglasie.liststemplate}")
     private String listsTemplate;
-    @Value("${rosgosstrah.attachlisttemplate}")
+    @Value("${soglasie.attachlisttemplate}")
     private String attachListTemplate;
-    @Value("${rosgosstrah.deattachlisttemplate}")
+    @Value("${soglasie.deattachlisttemplate}")
     private String deattachListTemplate;
-    @Value("${rosgosstrah.attachfiletemplate}")
+    @Value("${soglasie.attachfiletemplate}")
     private String attachFileTemplate;
-    @Value("${rosgosstrah.deattachfiletemplate}")
+    @Value("${soglasie.deattachfiletemplate}")
     private String deattachFileTemplate;
 
     public boolean isListsMail(String from, String subject) {
@@ -62,9 +57,9 @@ public class RosGosStrah extends Company {
         return this.isDeattachFile(fileName, deattachFileTemplate);
     }
 
-    public List<RosGosStrahModel> parseAttachListExcel(InputStream is) {
+    public List<SoglasieModel> parseAttachListExcel(InputStream is) {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        List<RosGosStrahModel> customers = new ArrayList<>();
+        List<SoglasieModel> customers = new ArrayList<>();
         try {
             // we create an XSSF Workbook object for our XLSX Excel File
             workbook = new HSSFWorkbook(is);
@@ -77,6 +72,7 @@ public class RosGosStrah extends Company {
             boolean startOfDataFlag = false;
             int prewRowIndex = 0;
             String validity = null;
+            String placeOfWork = null;
 
             while (rowIt.hasNext()) {
                 Row row = rowIt.next();
@@ -88,10 +84,19 @@ public class RosGosStrah extends Company {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
                         //Вытаскиваем сроки страхования
-                        if (cell.toString().contains("Срок страхования")) {
-                            validity = cell.toString().substring(cell.toString().indexOf("\n") + 1, cell.toString().indexOf("Страхователь") - 1);
+                        if (cell.toString().contains("Прикрепление")) {
+                            cell = cellIterator.next();
+                            validity = cell.toString();
+                            cellIterator.next();
+                            cellIterator.next();
+                            cell = cellIterator.next();
+                            validity += " - " + cell.toString();
                             break;
-                        } else if (cell.toString().equals("№ п/п")) {
+                        } else if (cell.toString().contains("Организация")) {
+                            cell = cellIterator.next();
+                            placeOfWork = cell.toString();
+                            break;
+                        } else if (cell.toString().contains("№ полиса ДМС")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -100,10 +105,10 @@ public class RosGosStrah extends Company {
                     continue;
                 } else if (cellIterator.hasNext()){
 
+                    cellIterator.next();
                     cell = cellIterator.next();
 
-                    //Ожидаем порядковый номер, а встречаем что-то длиньше
-                    if (cell.toString().length() > 3) {
+                    if (cell.getRowIndex() - prewRowIndex > 1) {
                         startOfDataFlag = false;
                         continue;
                     }
@@ -111,32 +116,32 @@ public class RosGosStrah extends Company {
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
                             log.info("Прикрепление пациента");
-                            RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
+                            SoglasieModel soglasieModel = new SoglasieModel();
 
-                            rosGosStrahModel.setFio(cellIterator.next().toString());
-                            rosGosStrahModel.setSex(cellIterator.next().toString());
-                            rosGosStrahModel.setDateOfBirth(cellIterator.next().getDateCellValue());
-                            rosGosStrahModel.setAdress(cellIterator.next().toString());
-                            rosGosStrahModel.setPhoneNumber(cellIterator.next().toString());
-                            rosGosStrahModel.setValidity(validity);
+                            soglasieModel.setSurname(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setName(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setPatronymic(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setDateOfBirth(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setAdress(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setPhoneNumber(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setValidity(validity);
+                            soglasieModel.setPlaceOfWork(placeOfWork);
 
-                            //Костыль против пробразования строки в число
-                            Cell policyNumberCell = cellIterator.next();
-                            policyNumberCell.setCellType(CellType.STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-                            rosGosStrahModel.setPolicyNumber(policyNumber);
+                            log.info(soglasieModel.toString());
 
-                            log.info(rosGosStrahModel.toString());
-
-                            customers.add(rosGosStrahModel);
+                            customers.add(soglasieModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
+                    } else{
+                        startOfDataFlag = false;
                     }
 
                 }
 
-                prewRowIndex = row.getRowNum();
+                if(startOfDataFlag)
+                    prewRowIndex = row.getRowNum();
 
             }
 
@@ -156,9 +161,9 @@ public class RosGosStrah extends Company {
 
     }
 
-    public List<RosGosStrahModel> parseDeattachListExcel(InputStream is) throws IOException {
+    public List<SoglasieModel> parseDeattachListExcel(InputStream is) throws IOException {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        List<RosGosStrahModel> customers = new ArrayList<>();
+        List<SoglasieModel> customers = new ArrayList<>();
         try {
             // we create an HSSF Workbook object for our XLSX Excel File
             workbook = new HSSFWorkbook(is);
@@ -181,7 +186,7 @@ public class RosGosStrah extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        if (cell.toString().equals("№ п/п")) {
+                        if (cell.toString().equals("№ полиса ДМС")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -202,20 +207,20 @@ public class RosGosStrah extends Company {
                         try {
                             log.info("Открепление пациента");
 
-                            RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
+                            SoglasieModel soglasieModel = new SoglasieModel();
 
-                            rosGosStrahModel.setFio(cellIterator.next().toString());
-                            rosGosStrahModel.setSex(cellIterator.next().toString());
-                            rosGosStrahModel.setDateOfBirth(cellIterator.next().getDateCellValue());
-                            //Костыль против пробразования строки в число
-                            Cell policyNumberCell = cellIterator.next();
-                            policyNumberCell.setCellType(CellType.STRING);
-                            String policyNumber = policyNumberCell.getStringCellValue();
-                            rosGosStrahModel.setPolicyNumber(policyNumber);
+//                            soglasieModel.setSurname(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+//                            soglasieModel.setName(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+//                            soglasieModel.setPatronymic(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+//                            soglasieModel.setDateOfBirth(format.parse(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+//                            soglasieModel.setPolicyNumber(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+//                            soglasieModel.setPolicyEndDate(format.parse(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
+//                            soglasieModel.setInsuranceProgram(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+//                            soglasieModel.setPlaceOfWork(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(rosGosStrahModel.toString());
+                            log.info(soglasieModel.toString());
 
-                            customers.add(rosGosStrahModel);
+                            customers.add(soglasieModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
@@ -241,7 +246,7 @@ public class RosGosStrah extends Company {
 
     }
 
-    public void addCustomersToFile(List<RosGosStrahModel> customers) {
+    public void addCustomersToFile(List<SoglasieModel> customers) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -254,10 +259,10 @@ public class RosGosStrah extends Company {
 
             for (Row row : sheet) {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
-                    Cell policyNumberCell = row.getCell(5);
+                    Cell policyNumberCell = row.getCell(0);
                     String policyNumber = policyNumberCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
-                        for (RosGosStrahModel customer : customers) {
+                        for (SoglasieModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()))
                                 customer.setNew(false);
                         }
@@ -265,26 +270,25 @@ public class RosGosStrah extends Company {
                 }
             }
 
-            for (RosGosStrahModel customer : customers) {
+            for (SoglasieModel customer : customers) {
                 if (customer.isNew()) {
                     XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
-                    row.createCell(0).setCellValue(customer.getFio());
-                    row.createCell(1).setCellValue(customer.getSex());
-                    if(customer.getDateOfBirth() != null) row.createCell(2).setCellValue(format.format(customer.getDateOfBirth()));
-                    row.createCell(3).setCellValue(customer.getAdress());
-                    row.createCell(4).setCellValue(customer.getPhoneNumber());
-                    row.createCell(5).setCellValue(customer.getPolicyNumber());
-                    row.createCell(6).setCellValue(customer.getValidity());
+                    row.createCell(0).setCellValue(customer.getPolicyNumber());
+                    row.createCell(1).setCellValue(customer.getSurname());
+                    row.createCell(2).setCellValue(customer.getName());
+                    row.createCell(3).setCellValue(customer.getPatronymic());
+                    row.createCell(4).setCellValue(customer.getDateOfBirth());
+                    row.createCell(5).setCellValue(customer.getAdress());
+                    row.createCell(6).setCellValue(customer.getPhoneNumber());
+                    row.createCell(7).setCellValue(customer.getValidity());
+                    row.createCell(8).setCellValue(customer.getPlaceOfWork());
                 }
             }
 
             FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
             workbook.write(outputStream);
-            workbook.close();
             outputStream.close();
 
-            workbook.close();
-            inputStream.close();
         } catch (FileNotFoundException e) {
             log.error("Процесс не может получить доступ к файлу", e.getMessage());
             myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
@@ -300,9 +304,10 @@ public class RosGosStrah extends Company {
 
     }
 
-    public void removeCustomersFromFile(List<RosGosStrahModel> customers) {
-        for (RosGosStrahModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 5);
+
+    public void removeCustomersFromFile(List<SoglasieModel> customers) {
+        for (SoglasieModel customer : customers) {
+            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 9);
         }
     }
 

@@ -293,7 +293,7 @@ public class InGosStrah extends Company {
             workbook.write(outputStream);
             outputStream.close();
         } catch (FileNotFoundException e) {
-            log.error("Процесс не может получить доступ к файлу", e);
+            log.error("Процесс не может получить доступ к файлу", e.getMessage());
             myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);

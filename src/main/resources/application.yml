@@ -1,19 +1,17 @@
 spring:
   mail:
-    host: smtp.yandex.ru
-    port: 587
+#    protocol: smtp
+#    host: smtp.yandex.ru
+#    port: 587
+    host: imap.yandex.ru
+    protocol: imap
+    port: 993
     username: info@denttime.ru
     password: 23Ja8Uq(
     properties:
       mail:
         smtp: auth=true
         starttls: enable=true
-
-#logging:
-#  level:
-#    org:springframework:web: INFO
-#  file:name: logs/dms.log
-
 
 mail:
   mime:encodeparameters: false
@@ -22,7 +20,7 @@ mail:
 file:download:location: D:\\temp\\mail
 mail:folder:name: FOO
 
-mailsListSize: 170
+mailsListSize: 1000
 
 bestdoctor:
   storage: "D:\\temp\\mail\\BestDoctor.xlsx"
@@ -81,6 +79,15 @@ sogaz:
   deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
   attachfiletemplate: ".XLS"
   deattachfiletemplate: ".XLS"
+
+soglasie:
+  storage: "D:\\temp\\mail\\Soglasie.xlsx"
+  sender: "spiski_lpu@soglasie.ru"
+  liststemplate: "СК СОГЛАСИЕ"
+  attachlisttemplate: "СПИСОК"
+  deattachlisttemplate: "СПИСОК"
+  attachfiletemplate: "ПРИКР"
+  deattachfiletemplate: "ОТКР"
 
 reso:
   storage: "D:\\temp\\mail\\Reso.xlsx"

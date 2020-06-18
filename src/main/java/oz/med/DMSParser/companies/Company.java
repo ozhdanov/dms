@@ -9,8 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import oz.med.DMSParser.model.AbsolutModel;
-import oz.med.DMSParser.services.MyTrayIcon;
+import oz.med.DMSParser.MyTrayIcon;
 
 import java.awt.*;
 import java.io.*;
@@ -93,7 +92,7 @@ public class Company {
             workbook.close();
             inputStream.close();
         } catch (FileNotFoundException e) {
-            log.error("Процесс не может получить доступ к файлу", e);
+            log.error("Процесс не может получить доступ к файлу", e.getMessage());
             myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);

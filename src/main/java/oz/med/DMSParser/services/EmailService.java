@@ -1,21 +1,20 @@
 package oz.med.DMSParser.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import oz.med.DMSParser.MyTrayIcon;
 import oz.med.DMSParser.companies.*;
 import oz.med.DMSParser.model.*;
-import ru.CryptoPro.JCP.Cipher.InGostCipher;
 
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeUtility;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Properties;
 
@@ -51,6 +50,19 @@ public class EmailService {
     Sogaz sogaz;
     @Autowired
     Reso reso;
+    @Autowired
+    Soglasie soglasie;
+
+    @Value("${spring.mail.protocol}")
+    private String protocol;
+    @Value("${spring.mail.host}")
+    private String host;
+    @Value("${spring.mail.port}")
+    private String port;
+    @Value("${spring.mail.username}")
+    private String userName;
+    @Value("${spring.mail.password}")
+    private String password;
 
     public static int attachCount = 0;
     public static int deattachCount = 0;
@@ -89,26 +101,17 @@ public class EmailService {
      * Downloads new messages and fetches details for each message.
 
      */
-    public void handleEmails() throws IOException {
+    public void handleEmails() {
 
         log.info("Начало обработки писем");
 
         attachCount = 0;
         deattachCount = 0;
 
-        // for IMAP
-        String protocol = "imap";
-        String host = "imap.yandex.ru";
-        String port = "993";
-
-
-        String userName = "info@denttime.ru";
-        String password = "23Ja8Uq(";
-
         Properties properties = getServerProperties(protocol, host, port);
         Session session = Session.getDefaultInstance(properties);
 
-        Message[] messages = {};
+        Message[] messages;
 
         try {
             // connects to the message store
@@ -144,12 +147,13 @@ public class EmailService {
 
                 if (!(
 //                        bestDoctor.isListsMail(from, subject) ||
-//                                alfaStrah.isListsMail(from, subject)
+//                                alfaStrah.isListsMail(from, subject) ||
 //                                rosGosStrah.isListsMail(from, subject) ||
 //                                inGosStrah.isListsMail(from, subject) ||
 //                                absolut.isListsMail(from, subject) ||
-//                                sogaz.isListsMail(from, subject)
-                                reso.isListsMail(from, subject)
+//                                sogaz.isListsMail(from, subject) ||
+//                                reso.isListsMail(from, subject) ||
+                                soglasie.isListsMail(from, subject)
                 )) continue;
 
 //                log.info("\t From: " + from);
@@ -160,7 +164,13 @@ public class EmailService {
 
                 if (contentType.contains("multipart")) {
                     // content may contain attachments
-                    Multipart multiPart = (Multipart) message.getContent();
+                    Multipart multiPart;
+                    try {
+                        multiPart = (Multipart) message.getContent();
+                    } catch (IOException e){
+                        log.error("Ошибка чтения письма", e);
+                        continue;
+                    }
                     int numberOfParts = multiPart.getCount();
                     for (int partCount = 0; partCount < numberOfParts; partCount++) {
                         MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(partCount);
@@ -169,119 +179,144 @@ public class EmailService {
                                 || (part.getDisposition() == null && part.getFileName() != null)) {
                             String fileName = "";
 
-                            //У всех файл прикреплен по разному и разные кодировки
-                            if((inGosStrah.isListsMail(from, subject) || absolut.isListsMail(from, subject) || sogaz.isListsMail(from, subject))
-                                    && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
-                                fileName = MimeUtility.decodeText(part.getFileName());
-                            else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
-                                fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
-                            else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
-                                fileName = MimeUtility.decodeText(part.getFileName());
+                            try {
+                                //У всех файл прикреплен по разному и разные кодировки
+                                if ((inGosStrah.isListsMail(from, subject) || absolut.isListsMail(from, subject) || sogaz.isListsMail(from, subject) || soglasie.isListsMail(from, subject))
+                                        && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+                                    fileName = MimeUtility.decodeText(part.getFileName());
+                                else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+                                    fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
+                                else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
+                                    fileName = MimeUtility.decodeText(part.getFileName());
+                            } catch (UnsupportedEncodingException e){
+                                log.error("Ошибка обработки имени файла", e);
+                                continue;
+                            }
 
                             attachFiles += fileName + ", ";
 
                             //БэстДоктор
-                            if (bestDoctor.isListsMail(from, subject)) {
-                                if (bestDoctor.isAttachFile(fileName)) {
-                                    List<BestDoctorModel> bestDoctorModels = bestDoctor.parseAttachListExcel(part.getInputStream());
-                                    bestDoctor.addCustomersToFile(bestDoctorModels);
-                                } else if (bestDoctor.isDeattachFile(fileName)) {
-                                    List<BestDoctorModel> bestDoctorModels = bestDoctor.parseDeattachListExcel(part.getInputStream());
-                                    if (bestDoctorModels.size() > 0) bestDoctor.removeCustomersFromFile(bestDoctorModels);
+                            try {
+                                if (bestDoctor.isListsMail(from, subject)) {
+                                    if (bestDoctor.isAttachFile(fileName)) {
+                                        List<BestDoctorModel> bestDoctorModels = bestDoctor.parseAttachListExcel(part.getInputStream());
+                                        bestDoctor.addCustomersToFile(bestDoctorModels);
+                                    } else if (bestDoctor.isDeattachFile(fileName)) {
+                                        List<BestDoctorModel> bestDoctorModels = bestDoctor.parseDeattachListExcel(part.getInputStream());
+                                        if (bestDoctorModels.size() > 0)
+                                            bestDoctor.removeCustomersFromFile(bestDoctorModels);
+                                    }
                                 }
+                                //Альфа
+                                else if (alfaStrah.isAttachListMail(from, subject)) {
+                                    if (alfaStrah.isAttachFile(fileName)) {
+                                        List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseAttachListExcel(part.getInputStream());
+                                        alfaStrah.addCustomersToFile(alfaStrahModels);
+                                    }
+                                } else if (alfaStrah.isDeattachListMail(from, subject)) {
+                                    if (alfaStrah.isDeattachFile(fileName)) {
+                                        List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseDeattachListExcel(part.getInputStream());
+                                        if (alfaStrahModels.size() > 0)
+                                            alfaStrah.removeCustomersFromFile(alfaStrahModels);
+                                    }
+                                }
+                                //РосГосСтрах
+                                else if (rosGosStrah.isListsMail(from, subject)) {
+                                    if (rosGosStrah.isAttachFile(fileName)) {
+                                        List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseAttachListExcel(part.getInputStream());
+                                        rosGosStrah.addCustomersToFile(rosGosStrahModels);
+                                    } else if (rosGosStrah.isDeattachFile(fileName)) {
+                                        List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseDeattachListExcel(part.getInputStream());
+                                        if (rosGosStrahModels.size() > 0)
+                                            rosGosStrah.removeCustomersFromFile(rosGosStrahModels);
+                                    }
+                                }
+                                //ИнГосСтрах
+                                else if (inGosStrah.isAttachListMail(from, subject)) {
+                                    if (inGosStrah.isAttachFile(fileName)) {
+                                        List<InGosStrahModel> inGosStrahModels = inGosStrah.parseAttachListExcel(part.getInputStream());
+                                        inGosStrah.addCustomersToFile(inGosStrahModels);
+                                    }
+                                } else if (inGosStrah.isDeattachListMail(from, subject)) {
+                                    if (inGosStrah.isDeattachFile(fileName)) {
+                                        List<InGosStrahModel> inGosStrahModels = inGosStrah.parseDeattachListExcel(part.getInputStream());
+                                        if (inGosStrahModels.size() > 0)
+                                            inGosStrah.removeCustomersFromFile(inGosStrahModels);
+                                    }
+                                }
+                                //Абсолют
+                                else if (absolut.isAttachListMail(from, subject)) {
+                                    if (absolut.isAttachFile(fileName)) {
+                                        List<AbsolutModel> absolutModels = absolut.parseAttachListExcel(part.getInputStream());
+                                        absolut.addCustomersToFile(absolutModels);
+                                    }
+                                } else if (absolut.isDeattachListMail(from, subject)) {
+                                    if (absolut.isDeattachFile(fileName)) {
+                                        List<AbsolutModel> absolutModels = absolut.parseDeattachListExcel(part.getInputStream());
+                                        if (absolutModels.size() > 0) absolut.removeCustomersFromFile(absolutModels);
+                                    }
+                                }
+                                //Согаз
+                                else if (sogaz.isAttachListMail(from, subject)) {
+                                    if (sogaz.isAttachFile(fileName)) {
+                                        List<SogazModel> sogazModels = sogaz.parseAttachListExcel(part.getInputStream());
+                                        sogaz.addCustomersToFile(sogazModels);
+                                    }
+                                } else if (sogaz.isDeattachListMail(from, subject)) {
+                                    if (sogaz.isDeattachFile(fileName)) {
+                                        List<SogazModel> sogazModels = sogaz.parseDeattachListExcel(part.getInputStream());
+                                        if (sogazModels.size() > 0) sogaz.removeCustomersFromFile(sogazModels);
+                                    }
+                                }
+                                //Ресо
+                                else if (reso.isAttachListMail(from, subject)) {
+                                    if (reso.isAttachFile(fileName)) {
+                                        List<ResoModel> resoModels = reso.parseAttachListRTF(part.getInputStream());
+                                        reso.addCustomersToFile(resoModels);
+                                    }
+                                } else if (reso.isDeattachListMail(from, subject)) {
+                                    if (reso.isDeattachFile(fileName)) {
+                                        List<ResoModel> resoModels = reso.parseDeattachListExcel(part.getInputStream());
+                                        if (resoModels.size() > 0) reso.removeCustomersFromFile(resoModels);
+                                    }
+                                }
+                                //Согласие
+                                else if (soglasie.isListsMail(from, subject)) {
+                                    if (soglasie.isAttachFile(fileName)) {
+                                        List<SoglasieModel> soglasieModels = soglasie.parseAttachListExcel(part.getInputStream());
+                                        soglasie.addCustomersToFile(soglasieModels);
+                                    }
+//                                    if (soglasie.isDeattachFile(fileName)) {
+//                                        List<SoglasieModel> soglasieModels = soglasie.parseDeattachListExcel(part.getInputStream());
+//                                        if (soglasieModels.size() > 0) soglasie.removeCustomersFromFile(soglasieModels);
+//                                    }
+                                }
+                            } catch (IOException e) {
+                                log.error("Ошибка извлечения файла от " + from, e);
                             }
-                            //Альфа
-                            else if (alfaStrah.isAttachListMail(from, subject)) {
-                                if (alfaStrah.isAttachFile(fileName)) {
-                                    List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseAttachListExcel(part.getInputStream());
-                                    alfaStrah.addCustomersToFile(alfaStrahModels);
-                                }
-                            } else if (alfaStrah.isDeattachListMail(from, subject)) {
-                                if (alfaStrah.isDeattachFile(fileName)) {
-                                    List<AlfaStrahModel> alfaStrahModels = alfaStrah.parseDeattachListExcel(part.getInputStream());
-                                    if (alfaStrahModels.size() > 0) alfaStrah.removeCustomersFromFile(alfaStrahModels);
-                                }
-                            }
-                            //РосГосСтрах
-                            else if (rosGosStrah.isListsMail(from, subject)) {
-                                if (rosGosStrah.isAttachFile(fileName)) {
-                                    List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseAttachListExcel(part.getInputStream());
-                                    rosGosStrah.addCustomersToFile(rosGosStrahModels);
-                                } else if (rosGosStrah.isDeattachFile(fileName)) {
-                                    List<RosGosStrahModel> rosGosStrahModels = rosGosStrah.parseDeattachListExcel(part.getInputStream());
-                                    if (rosGosStrahModels.size() > 0) rosGosStrah.removeCustomersFromFile(rosGosStrahModels);
-                                }
-                            }
-                            //ИнГосСтрах
-                            else if (inGosStrah.isAttachListMail(from, subject)) {
-                                if (inGosStrah.isAttachFile(fileName)) {
-                                    List<InGosStrahModel> inGosStrahModels = inGosStrah.parseAttachListExcel(part.getInputStream());
-                                    inGosStrah.addCustomersToFile(inGosStrahModels);
-                                }
-                            } else if (inGosStrah.isDeattachListMail(from, subject)) {
-                                if (inGosStrah.isDeattachFile(fileName)) {
-                                    List<InGosStrahModel> inGosStrahModels = inGosStrah.parseDeattachListExcel(part.getInputStream());
-                                    if (inGosStrahModels.size() > 0) inGosStrah.removeCustomersFromFile(inGosStrahModels);
-                                }
-                            }
-                            //Абсолют
-                            else if (absolut.isAttachListMail(from, subject)) {
-                                if (absolut.isAttachFile(fileName)) {
-                                    List<AbsolutModel> absolutModels = absolut.parseAttachListExcel(part.getInputStream());
-                                    absolut.addCustomersToFile(absolutModels);
-                                }
-                            } else if (absolut.isDeattachListMail(from, subject)) {
-                                if (absolut.isDeattachFile(fileName)) {
-                                    List<AbsolutModel> absolutModels = absolut.parseDeattachListExcel(part.getInputStream());
-                                    if (absolutModels.size() > 0) absolut.removeCustomersFromFile(absolutModels);
-                                }
-                            }
-                            //Согаз
-                            else if (sogaz.isAttachListMail(from, subject)) {
-                                if (sogaz.isAttachFile(fileName)) {
-                                    List<SogazModel> sogazModels = sogaz.parseAttachListExcel(part.getInputStream());
-                                    sogaz.addCustomersToFile(sogazModels);
-                                }
-                            } else if (sogaz.isDeattachListMail(from, subject)) {
-                                if (sogaz.isDeattachFile(fileName)) {
-                                    List<SogazModel> sogazModels = sogaz.parseDeattachListExcel(part.getInputStream());
-                                    if (sogazModels.size() > 0) sogaz.removeCustomersFromFile(sogazModels);
-                                }
-                            }
-                            //Ресо
-                            else if (reso.isAttachListMail(from, subject)) {
-                                if (reso.isAttachFile(fileName)) {
-                                    List<ResoModel> resoModels = reso.parseAttachListRTF(part.getInputStream());
-                                    reso.addCustomersToFile(resoModels);
-                                }
-                            } else if (reso.isDeattachListMail(from, subject)) {
-                                if (reso.isDeattachFile(fileName)) {
-                                    List<ResoModel> resoModels = reso.parseDeattachListExcel(part.getInputStream());
-                                    if (resoModels.size() > 0) reso.removeCustomersFromFile(resoModels);
-                                }
-                            }
-
 
                             //todo
 //                            part.saveFile(saveDirectory + File.separator
 //                                    + new DateTime(message.getSentDate()).toString("yyyy-MM-dd_HH-mm-ss") + "_" + fileName);
 
-                        } else if (part.getContent() != null){
-                            // this part may be the message content
-                            messageContent = part.getContent().toString();
                         }
+//                        else if (part.getContent() != null){
+//                            // this part may be the message content
+//                            messageContent = part.getContent().toString();
+//                        }
                     }
 
                     if (attachFiles.length() > 1) {
                         attachFiles = attachFiles.substring(0, attachFiles.length() - 2);
                     }
-                } else if (contentType.contains("text/plain")
-                        || contentType.contains("text/html")) {
-                    Object content = message.getContent();
-                    if (content != null) {
-                        messageContent = content.toString();
-                    }
                 }
+//                else if (contentType.contains("text/plain")
+//                        || contentType.contains("text/html")) {
+//                    Object content = message.getContent();
+//                    if (content != null) {
+//                        messageContent = content.toString();
+//                    }
+//                }
 
 //                // print out details of each message
 //                log.info();
