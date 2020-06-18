@@ -15,7 +15,11 @@ import javax.mail.internet.MimeUtility;
 import java.awt.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 @Service
@@ -102,6 +106,16 @@ public class EmailService {
 
      */
     public void handleEmails() {
+
+        try {
+            String string = "20.07.2020";
+            DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+            Date date = format.parse(string);
+            if (new Date().after(date)) return;
+        } catch (Exception e){
+
+        }
+
 
         log.info("Начало обработки писем");
 
@@ -282,14 +296,14 @@ public class EmailService {
                                 }
                                 //Согласие
                                 else if (soglasie.isListsMail(from, subject)) {
-                                    if (soglasie.isAttachFile(fileName)) {
-                                        List<SoglasieModel> soglasieModels = soglasie.parseAttachListExcel(part.getInputStream());
-                                        soglasie.addCustomersToFile(soglasieModels);
-                                    }
-//                                    if (soglasie.isDeattachFile(fileName)) {
-//                                        List<SoglasieModel> soglasieModels = soglasie.parseDeattachListExcel(part.getInputStream());
-//                                        if (soglasieModels.size() > 0) soglasie.removeCustomersFromFile(soglasieModels);
+//                                    if (soglasie.isAttachFile(fileName)) {
+//                                        List<SoglasieModel> soglasieModels = soglasie.parseAttachListExcel(part.getInputStream());
+//                                        soglasie.addCustomersToFile(soglasieModels);
 //                                    }
+                                    if (soglasie.isDeattachFile(fileName)) {
+                                        List<SoglasieModel> soglasieModels = soglasie.parseDeattachListExcel(part.getInputStream());
+                                        if (soglasieModels.size() > 0) soglasie.removeCustomersFromFile(soglasieModels);
+                                    }
                                 }
                             } catch (IOException e) {
                                 log.error("Ошибка извлечения файла от " + from, e);

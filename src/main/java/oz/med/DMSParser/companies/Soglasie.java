@@ -186,7 +186,7 @@ public class Soglasie extends Company {
                 if (!startOfDataFlag) {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
-                        if (cell.toString().equals("№ полиса ДМС")) {
+                        if (cell.toString().equals("Нормер полиса")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -197,8 +197,7 @@ public class Soglasie extends Company {
 
                     cell = cellIterator.next();
 
-                    //Ожидаем порядковый номер, а встречаем что-то длиньше
-                    if (cell.toString().length() > 3) {
+                    if (cell.getRowIndex() - prewRowIndex > 1) {
                         startOfDataFlag = false;
                         continue;
                     }
@@ -209,14 +208,8 @@ public class Soglasie extends Company {
 
                             SoglasieModel soglasieModel = new SoglasieModel();
 
-//                            soglasieModel.setSurname(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-//                            soglasieModel.setName(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-//                            soglasieModel.setPatronymic(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-//                            soglasieModel.setDateOfBirth(format.parse(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
-//                            soglasieModel.setPolicyNumber(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-//                            soglasieModel.setPolicyEndDate(format.parse(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString()));
-//                            soglasieModel.setInsuranceProgram(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-//                            soglasieModel.setPlaceOfWork(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            soglasieModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+
 
                             log.info(soglasieModel.toString());
 
@@ -307,7 +300,7 @@ public class Soglasie extends Company {
 
     public void removeCustomersFromFile(List<SoglasieModel> customers) {
         for (SoglasieModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 9);
+            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 
