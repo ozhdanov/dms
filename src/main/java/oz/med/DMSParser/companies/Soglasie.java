@@ -244,7 +244,7 @@ public class Soglasie extends Company {
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(new File(storageFileUrl));
+            inputStream = new FileInputStream(new File(this.listsUrl + storageFileUrl));
             // we create an XSSF Workbook object for our XLSX Excel File
             workbook = new XSSFWorkbook(inputStream);
             // we get first sheet
@@ -278,12 +278,12 @@ public class Soglasie extends Company {
                 }
             }
 
-            FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
+            FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
             outputStream.close();
 
         } catch (FileNotFoundException e) {
-            log.error("Процесс не может получить доступ к файлу", e.getMessage());
+            log.error("Процесс не может получить доступ к файлу", e);
             myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);

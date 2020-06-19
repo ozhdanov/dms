@@ -16,7 +16,7 @@ public class Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 //        System.setProperty("mail.mime.encodeparameters",  "false");
-//        System.setProperty("mail.mime.charset",  "utf-8");
+        System.setProperty("mail.mime.charset",  "utf-8");
 
 //        log.info(testQuery());
 

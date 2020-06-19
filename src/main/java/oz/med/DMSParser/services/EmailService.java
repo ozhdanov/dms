@@ -119,6 +119,9 @@ public class EmailService {
 
         log.info("Начало обработки писем");
 
+        myTrayIcon.displayMessage("ДМС", "Запущена автоматическая обработка писем", TrayIcon.MessageType.INFO);
+
+
         attachCount = 0;
         deattachCount = 0;
 
@@ -160,9 +163,9 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-//                        bestDoctor.isListsMail(from, subject) ||
+                        bestDoctor.isListsMail(from, subject) ||
 //                                alfaStrah.isListsMail(from, subject) ||
-//                                rosGosStrah.isListsMail(from, subject) ||
+                                rosGosStrah.isListsMail(from, subject) ||
 //                                inGosStrah.isListsMail(from, subject) ||
 //                                absolut.isListsMail(from, subject) ||
 //                                sogaz.isListsMail(from, subject) ||
@@ -296,10 +299,10 @@ public class EmailService {
                                 }
                                 //Согласие
                                 else if (soglasie.isListsMail(from, subject)) {
-//                                    if (soglasie.isAttachFile(fileName)) {
-//                                        List<SoglasieModel> soglasieModels = soglasie.parseAttachListExcel(part.getInputStream());
-//                                        soglasie.addCustomersToFile(soglasieModels);
-//                                    }
+                                    if (soglasie.isAttachFile(fileName)) {
+                                        List<SoglasieModel> soglasieModels = soglasie.parseAttachListExcel(part.getInputStream());
+                                        soglasie.addCustomersToFile(soglasieModels);
+                                    }
                                     if (soglasie.isDeattachFile(fileName)) {
                                         List<SoglasieModel> soglasieModels = soglasie.parseDeattachListExcel(part.getInputStream());
                                         if (soglasieModels.size() > 0) soglasie.removeCustomersFromFile(soglasieModels);

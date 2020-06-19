@@ -19,11 +19,12 @@ mail:
 
 file:download:location: D:\\temp\\mail
 mail:folder:name: FOO
-
-mailsListSize: 1000
+mailsListSize: 400
+listsUrl : "D:\\temp\\mail\\"
+#listsUrl : ""
 
 bestdoctor:
-  storage: "D:\\temp\\mail\\BestDoctor.xlsx"
+  storage: "BestDoctor.xlsx"
   sender: "list@bestdoctor.ru"
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
@@ -32,7 +33,7 @@ bestdoctor:
   deattachfiletemplate: "ОТКРЕПЛЕНИЕ"
 
 alfastrah:
-  storage: "D:\\temp\\mail\\AlfaStrah.xlsx"
+  storage: "AlfaStrah.xlsx"
   sender: "avis@alfastrah.ru"
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
@@ -41,7 +42,7 @@ alfastrah:
   deattachfiletemplate: "snyat"
 
 rosgosstrah:
-  storage: "D:\\temp\\mail\\RosGosStrah.xlsx"
+  storage: "RosGosStrah.xlsx"
   sender: "spiski@rgs.ru"
   liststemplate: "СПИСОК ЗАСТРАХОВАННЫХ"
   attachlisttemplate:
@@ -50,7 +51,7 @@ rosgosstrah:
   deattachfiletemplate: " ОТКР "
 
 ingosstrah:
-  storage: "D:\\temp\\mail\\InGosStrah.xlsx"
+  storage: "InGosStrah.xlsx"
   sender: "@ingos.ru"
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЯ"
@@ -59,7 +60,7 @@ ingosstrah:
   deattachfiletemplate: "ОТКР"
 
 absolut:
-  storage: "D:\\temp\\mail\\Absolut.xlsx"
+  storage: "Absolut.xlsx"
   sender: "@absolutins.ru"
   liststemplate: "СПИСОК"
   attachlisttemplate: "ПРИНЯТИЕ"
@@ -72,7 +73,7 @@ absolut:
   deattachfiletemplate2: "СНЯТИЕ"
 
 sogaz:
-  storage: "D:\\temp\\mail\\Sogaz.xlsx"
+  storage: "Sogaz.xlsx"
   sender: "robotlpu@sogaz.ru"
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
@@ -81,7 +82,7 @@ sogaz:
   deattachfiletemplate: ".XLS"
 
 soglasie:
-  storage: "D:\\temp\\mail\\Soglasie.xlsx"
+  storage: "Soglasie.xlsx"
   sender: "spiski_lpu@soglasie.ru"
   liststemplate: "СК СОГЛАСИЕ"
   attachlisttemplate: "СПИСОК"
@@ -90,7 +91,7 @@ soglasie:
   deattachfiletemplate: "ОТКР"
 
 reso:
-  storage: "D:\\temp\\mail\\Reso.xlsx"
+  storage: "Reso.xlsx"
   sender: "mural@reso.ru"
   liststemplate: "РЕСО-Гарантия"
   attachlisttemplate: "ПРИКРЕПЛЕНИЕ"

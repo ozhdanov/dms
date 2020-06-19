@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.MyTrayIcon;
 
@@ -22,6 +23,9 @@ public class Company {
 
     @Autowired
     MyTrayIcon myTrayIcon;
+
+    @Value("${listsUrl}")
+    public String listsUrl;
 
     public boolean isListsMail(String from, String subject, String senderEmailTemplate, String listsTemplate) {
         if (from.toUpperCase().contains(senderEmailTemplate.toUpperCase()) && subject.toUpperCase().contains(listsTemplate.toUpperCase()))
@@ -64,7 +68,7 @@ public class Company {
         FileInputStream inputStream = null;
         List<Row> listOfRowsToRemove = new ArrayList<>();
         try {
-            inputStream = new FileInputStream(new File(storageFileUrl));
+            inputStream = new FileInputStream(new File(this.listsUrl + storageFileUrl));
             // we create an XSSF Workbook object for our XLSX Excel File
             workbook = new XSSFWorkbook(inputStream);
             // we get first sheet
@@ -84,7 +88,7 @@ public class Company {
                 removeExcelRow(sheet, row.getRowNum());
             }
 
-            FileOutputStream outputStream = new FileOutputStream(storageFileUrl);
+            FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
             workbook.close();
             outputStream.close();
@@ -92,7 +96,7 @@ public class Company {
             workbook.close();
             inputStream.close();
         } catch (FileNotFoundException e) {
-            log.error("Процесс не может получить доступ к файлу", e.getMessage());
+            log.error("Процесс не может получить доступ к файлу", e);
             myTrayIcon.displayMessage("Ошибка", e.getLocalizedMessage(), TrayIcon.MessageType.ERROR);
         } catch (IOException e) {
             log.error("Не удалось распарсить документ", e);

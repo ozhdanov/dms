@@ -11,7 +11,7 @@ public class Scheduler {
     @Autowired
     EmailService emailService;
 
-//    @Scheduled(cron = "0 0/20 * * * ?")
+    @Scheduled(cron = "0 0/30 * * * ?")
     public void parsingEmailsJob(){
 
         emailService.handleEmails();
