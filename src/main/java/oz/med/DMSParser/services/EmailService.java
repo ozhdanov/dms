@@ -164,12 +164,12 @@ public class EmailService {
 
                 if (!(
                         bestDoctor.isListsMail(from, subject) ||
-//                                alfaStrah.isListsMail(from, subject) ||
+                                alfaStrah.isListsMail(from, subject) ||
                                 rosGosStrah.isListsMail(from, subject) ||
-//                                inGosStrah.isListsMail(from, subject) ||
-//                                absolut.isListsMail(from, subject) ||
-//                                sogaz.isListsMail(from, subject) ||
-//                                reso.isListsMail(from, subject) ||
+                                inGosStrah.isListsMail(from, subject) ||
+                                absolut.isListsMail(from, subject) ||
+                                sogaz.isListsMail(from, subject) ||
+                                reso.isListsMail(from, subject) ||
                                 soglasie.isListsMail(from, subject)
                 )) continue;
 
@@ -202,13 +202,15 @@ public class EmailService {
                                         && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
                                     fileName = MimeUtility.decodeText(part.getFileName());
                                 else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
-                                    fileName = new String(part.getFileName().getBytes("ISO-8859-1"));
+                                    fileName = new String(part.getFileName().getBytes("ISO-8859-1"), "utf-8");
                                 else if (Part.INLINE.equalsIgnoreCase(part.getDisposition()) || (part.getDisposition() == null && part.getFileName() != null))
                                     fileName = MimeUtility.decodeText(part.getFileName());
                             } catch (UnsupportedEncodingException e){
                                 log.error("Ошибка обработки имени файла", e);
                                 continue;
                             }
+
+                            log.info("Название файла: " + fileName);
 
                             attachFiles += fileName + ", ";
 
