@@ -18,7 +18,7 @@ mail:
   mime:charset: utf-8
 
 file:download:location: D:\\temp\\mail
-mail:folder:name: FOO
+mailFolderName: INBOX
 mailsListSize: 200
 #listsUrl : "D:\\temp\\mail\\"
 listsUrl : ""

@@ -67,6 +67,8 @@ public class EmailService {
     private String userName;
     @Value("${spring.mail.password}")
     private String password;
+    @Value("${mailFolderName}")
+    private String mailFolderName;
 
     public static int attachCount = 0;
     public static int deattachCount = 0;
@@ -136,7 +138,7 @@ public class EmailService {
             store.connect(userName, password);
 
             // opens the inbox folder
-            Folder folderInbox = store.getFolder("INBOX");
+            Folder folderInbox = store.getFolder(mailFolderName);
             folderInbox.open(Folder.READ_ONLY);
 
             int messageCount = folderInbox.getMessageCount();
