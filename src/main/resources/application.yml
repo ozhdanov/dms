@@ -19,9 +19,9 @@ mail:
 
 file:download:location: D:\\temp\\mail
 mail:folder:name: FOO
-mailsListSize: 500
-listsUrl : "D:\\temp\\mail\\"
-#listsUrl : ""
+mailsListSize: 200
+#listsUrl : "D:\\temp\\mail\\"
+listsUrl : ""
 
 bestdoctor:
   storage: "BestDoctor.xlsx"
