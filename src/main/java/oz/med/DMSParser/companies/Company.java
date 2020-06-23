@@ -1,10 +1,7 @@
 package oz.med.DMSParser.companies;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +72,7 @@ public class Company {
             XSSFSheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
+                if (row.getCell(cellNumber) != null) row.getCell(cellNumber).setCellType(CellType.STRING);
                 if (row.getRowNum() > 0
                         && !isRowEmpty(row)
                         && !row.getCell(cellNumber).getStringCellValue().isEmpty()
