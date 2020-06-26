@@ -357,9 +357,13 @@ public class EmailService {
             store.close();
 
             if (attachCount > 0)
-                myTrayIcon.displayMessage("ДМС", "Прикреплено " + attachCount + " пациентов", TrayIcon.MessageType.INFO);
+                myTrayIcon.displayMessage("ДМС", "Всего прикреплено " + attachCount + " пациентов", TrayIcon.MessageType.INFO);
+            else
+                myTrayIcon.displayMessage("ДМС", "Новых пациентов на прикрепление нет", TrayIcon.MessageType.INFO);
             if (deattachCount > 0)
-                myTrayIcon.displayMessage("ДМС", "Откреплено " + deattachCount + " пациентов", TrayIcon.MessageType.INFO);
+                myTrayIcon.displayMessage("ДМС", "Всего откреплено " + deattachCount + " пациентов", TrayIcon.MessageType.INFO);
+            else
+                myTrayIcon.displayMessage("ДМС", "Новых пациентов на открепление нет", TrayIcon.MessageType.INFO);
 
             log.info("Окончание обработки писем");
 

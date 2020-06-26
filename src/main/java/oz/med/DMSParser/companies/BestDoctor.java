@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.BestDoctorModel;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -257,9 +258,12 @@ public class BestDoctor extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (BestDoctorModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1,rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
                     row.createCell(1).setCellValue(customer.getSurname());
                     row.createCell(2).setCellValue(customer.getName());
@@ -271,8 +275,13 @@ public class BestDoctor extends Company {
                     row.createCell(8).setCellValue(format.format(customer.getPolicyStartDate()));
                     row.createCell(9).setCellValue(format.format(customer.getPolicyEndDate()));
                     row.createCell(10).setCellValue(customer.getPlaceOfWork());
+
+                    EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Best Doctor", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -298,7 +307,7 @@ public class BestDoctor extends Company {
 
     public void removeCustomersFromFile(List<BestDoctorModel> customers) {
         for (BestDoctorModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("Best Doctor", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 

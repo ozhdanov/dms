@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.AlfaStrahModel;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -253,9 +254,12 @@ public class AlfaStrah extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (AlfaStrahModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1, rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
                     row.createCell(1).setCellValue(customer.getFio());
                     row.createCell(2).setCellValue(format.format(customer.getDateOfBirth()));
@@ -264,8 +268,13 @@ public class AlfaStrah extends Company {
                     row.createCell(5).setCellValue(format.format(customer.getPolicyStartDate()));
                     row.createCell(6).setCellValue(format.format(customer.getPolicyEndDate()));
                     row.createCell(7).setCellValue(customer.getPolicyType());
+
+                    EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Альфастрахование", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -291,7 +300,7 @@ public class AlfaStrah extends Company {
 
     public void removeCustomersFromFile(List<AlfaStrahModel> customers) {
         for (AlfaStrahModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("Альфастрахование", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 

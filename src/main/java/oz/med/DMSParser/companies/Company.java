@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.MyTrayIcon;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -59,7 +60,7 @@ public class Company {
             return false;
     }
 
-    public void removeCustomerFromFile(String storageFileUrl, String policyNumber, int cellNumber) {
+    public void removeCustomerFromFile(String companyName, String storageFileUrl, String policyNumber, int cellNumber) {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         FileInputStream inputStream = null;
@@ -82,9 +83,14 @@ public class Company {
                 }
             }
 
+            int currentDeattachCount = 0;
             for(Row row: listOfRowsToRemove){
                 removeExcelRow(sheet, row.getRowNum());
+                EmailService.deattachCount++;
+                currentDeattachCount++;
             }
+            if (currentDeattachCount > 0)
+                myTrayIcon.displayMessage(companyName, "Откреплено " + currentDeattachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);

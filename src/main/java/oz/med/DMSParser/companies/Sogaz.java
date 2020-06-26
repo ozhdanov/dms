@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.SogazModel;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -258,9 +259,12 @@ public class Sogaz extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (SogazModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1,rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getSurname());
                     row.createCell(1).setCellValue(customer.getName());
                     row.createCell(2).setCellValue(customer.getPatronymic());
@@ -276,8 +280,13 @@ public class Sogaz extends Company {
                     row.createCell(12).setCellValue(customer.getInsuranceProgram());
                     row.createCell(13).setCellValue(customer.getPlaceOfWork());
                     row.createCell(14).setCellValue(customer.getPosition());
+
+                    EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Согаз", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -301,7 +310,7 @@ public class Sogaz extends Company {
 
     public void removeCustomersFromFile(List<SogazModel> customers) {
         for (SogazModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 9);
+            removeCustomerFromFile("Согаз", storageFileUrl, customer.getPolicyNumber(), 9);
         }
     }
 

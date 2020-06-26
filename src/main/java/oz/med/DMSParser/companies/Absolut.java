@@ -259,9 +259,12 @@ public class Absolut extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (AbsolutModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1, rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getFio());
                     row.createCell(1).setCellValue(customer.getDateOfBirth());
                     row.createCell(2).setCellValue(customer.getAdress());
@@ -271,8 +274,11 @@ public class Absolut extends Company {
                     row.createCell(6).setCellValue(customer.getInsurant());
 
                     EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Абсолют", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -294,7 +300,7 @@ public class Absolut extends Company {
 
     public void removeCustomersFromFile(List<AbsolutModel> customers) {
         for (AbsolutModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 3);
+            removeCustomerFromFile("Абсолют", storageFileUrl, customer.getPolicyNumber(), 3);
         }
     }
 

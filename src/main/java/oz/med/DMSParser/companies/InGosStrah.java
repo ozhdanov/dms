@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.InGosStrahModel;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -267,9 +268,12 @@ public class InGosStrah extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (InGosStrahModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1,rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
                     row.createCell(1).setCellValue(customer.getSurname());
                     row.createCell(2).setCellValue(customer.getName());
@@ -286,8 +290,13 @@ public class InGosStrah extends Company {
                     row.createCell(13).setCellValue(customer.getInsuranceExtension());
                     row.createCell(14).setCellValue(customer.getLimitations());
                     row.createCell(15).setCellValue(customer.getCharacteristic());
+
+                    EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Ингосстрах", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -309,7 +318,7 @@ public class InGosStrah extends Company {
 
     public void removeCustomersFromFile(List<InGosStrahModel> customers) {
         for (InGosStrahModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("Ингосстрах", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 

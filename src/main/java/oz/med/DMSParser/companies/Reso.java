@@ -181,9 +181,12 @@ public class Reso extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (ResoModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1,rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
                     row.createCell(1).setCellValue(customer.getFio());
                     row.createCell(2).setCellValue(customer.getDateOfBirth());
@@ -193,8 +196,11 @@ public class Reso extends Company {
                     row.createCell(6).setCellValue(customer.getPolicyType());
 
                     EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("РЕСО-Гарантия", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -220,7 +226,7 @@ public class Reso extends Company {
 
     public void removeCustomersFromFile(List<ResoModel> customers) {
         for (ResoModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("РЕСО-Гарантия", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 

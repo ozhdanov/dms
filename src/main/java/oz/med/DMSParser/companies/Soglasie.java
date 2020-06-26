@@ -11,6 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.SoglasieModel;
+import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
 import java.io.*;
@@ -263,9 +264,12 @@ public class Soglasie extends Company {
                 }
             }
 
+            int currentAttachCount = 0;
             for (SoglasieModel customer : customers) {
                 if (customer.isNew()) {
-                    XSSFRow row = sheet.createRow(sheet.getPhysicalNumberOfRows());
+                    int rows = sheet.getLastRowNum();
+                    sheet.shiftRows(1,rows,1);
+                    XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
                     row.createCell(1).setCellValue(customer.getSurname());
                     row.createCell(2).setCellValue(customer.getName());
@@ -275,8 +279,13 @@ public class Soglasie extends Company {
                     row.createCell(6).setCellValue(customer.getPhoneNumber());
                     row.createCell(7).setCellValue(customer.getValidity());
                     row.createCell(8).setCellValue(customer.getPlaceOfWork());
+
+                    EmailService.attachCount++;
+                    currentAttachCount++;
                 }
             }
+            if (currentAttachCount > 0)
+                myTrayIcon.displayMessage("Согласие", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -300,7 +309,7 @@ public class Soglasie extends Company {
 
     public void removeCustomersFromFile(List<SoglasieModel> customers) {
         for (SoglasieModel customer : customers) {
-            removeCustomerFromFile(storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("Согласие", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 
