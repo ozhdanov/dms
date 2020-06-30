@@ -101,7 +101,7 @@ public class AlfaStrah extends Company {
                     }
 
                     try {
-                        log.info("Прикрепление пациента");
+                        log.debug("Прикрепление пациента");
                         AlfaStrahModel alfaStrahModel = new AlfaStrahModel();
                         //Костыль против пробразования строки в число
                         Cell policyNumberCell = cellIterator.next();
@@ -116,7 +116,7 @@ public class AlfaStrah extends Company {
                         alfaStrahModel.setPolicyStartDate(format.parse(cellIterator.next().toString()));
                         alfaStrahModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
                         alfaStrahModel.setPolicyType(cellIterator.next().toString());
-                        log.info(alfaStrahModel.toString());
+                        log.debug(alfaStrahModel.toString());
 
                         customers.add(alfaStrahModel);
                     } catch (ParseException e) {
@@ -189,7 +189,7 @@ public class AlfaStrah extends Company {
                     DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
                     try {
-                        log.info("Открепление пациента");
+                        log.debug("Открепление пациента");
 
                         AlfaStrahModel alfaStrahModel = new AlfaStrahModel();
                         //Костыль против пробразования строки в число
@@ -202,7 +202,7 @@ public class AlfaStrah extends Company {
                         alfaStrahModel.setDateOfBirth(format.parse(cellIterator.next().toString()));
                         alfaStrahModel.setPlaceOfWork(cellIterator.next().toString());
                         alfaStrahModel.setDeattachDate(format.parse(cellIterator.next().toString()));
-                        log.info(alfaStrahModel.toString());
+                        log.debug(alfaStrahModel.toString());
 
                         customers.add(alfaStrahModel);
                     } catch (ParseException e) {
@@ -257,7 +257,10 @@ public class AlfaStrah extends Company {
             int currentAttachCount = 0;
             for (AlfaStrahModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {}", customer.getFio());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1, rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());

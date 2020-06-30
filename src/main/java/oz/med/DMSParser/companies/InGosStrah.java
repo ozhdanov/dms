@@ -101,7 +101,7 @@ public class InGosStrah extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Прикрепление пациента");
+                            log.debug("Прикрепление пациента");
                             InGosStrahModel inGosStrahModel = new InGosStrahModel();
 
                             inGosStrahModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
@@ -121,7 +121,7 @@ public class InGosStrah extends Company {
                             inGosStrahModel.setLimitations(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setCharacteristic(row.getCell(16, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -195,7 +195,7 @@ public class InGosStrah extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Открепление пациента");
+                            log.debug("Открепление пациента");
 
                             InGosStrahModel inGosStrahModel = new InGosStrahModel();
 
@@ -216,7 +216,7 @@ public class InGosStrah extends Company {
                             inGosStrahModel.setLimitations(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setCharacteristic(row.getCell(16, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -271,7 +271,10 @@ public class InGosStrah extends Company {
             int currentAttachCount = 0;
             for (InGosStrahModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {} {} {}", customer.getSurname(), customer.getName(), customer.getPatronymic());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());

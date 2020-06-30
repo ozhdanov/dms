@@ -56,7 +56,7 @@ ingosstrah:
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЯ"
   deattachlisttemplate: "ОТКРЕПЛЕНИЯ"
-  attachfiletemplate: ".XLS"
+  attachfiletemplate: "ПРИКР"
   deattachfiletemplate: "ОТКР"
 
 absolut:

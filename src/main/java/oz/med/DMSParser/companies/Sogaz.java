@@ -101,7 +101,7 @@ public class Sogaz extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Прикрепление пациента");
+                            log.debug("Прикрепление пациента");
                             SogazModel inGosStrahModel = new SogazModel();
 
                             inGosStrahModel.setSurname(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
@@ -120,7 +120,7 @@ public class Sogaz extends Company {
                             inGosStrahModel.setPlaceOfWork(row.getCell(14, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setPosition(row.getCell(15, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -194,7 +194,7 @@ public class Sogaz extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Открепление пациента");
+                            log.debug("Открепление пациента");
 
                             SogazModel inGosStrahModel = new SogazModel();
 
@@ -207,7 +207,7 @@ public class Sogaz extends Company {
                             inGosStrahModel.setInsuranceProgram(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setPlaceOfWork(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -262,7 +262,10 @@ public class Sogaz extends Company {
             int currentAttachCount = 0;
             for (SogazModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {} {} {}", customer.getSurname(), customer.getName(), customer.getPatronymic());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getSurname());

@@ -212,7 +212,7 @@ public class EmailService {
                                 continue;
                             }
 
-                            log.info("Название файла: " + fileName);
+                            log.info("Обработка прикреплённого файла: " + fileName);
 
                             attachFiles += fileName + ", ";
 
@@ -254,12 +254,12 @@ public class EmailService {
                                 }
                                 //ИнГосСтрах
                                 else if (inGosStrah.isAttachListMail(from, subject)) {
-                                    if (inGosStrah.isAttachFile(fileName)) {
+                                    if (inGosStrah.isAttachFile(fileName) && inGosStrah.isAttachFile("XLS")) {
                                         List<InGosStrahModel> inGosStrahModels = inGosStrah.parseAttachListExcel(part.getInputStream());
                                         inGosStrah.addCustomersToFile(inGosStrahModels);
                                     }
                                 } else if (inGosStrah.isDeattachListMail(from, subject)) {
-                                    if (inGosStrah.isDeattachFile(fileName)) {
+                                    if (inGosStrah.isDeattachFile(fileName) && inGosStrah.isAttachFile("XLS")) {
                                         List<InGosStrahModel> inGosStrahModels = inGosStrah.parseDeattachListExcel(part.getInputStream());
                                         if (inGosStrahModels.size() > 0)
                                             inGosStrah.removeCustomersFromFile(inGosStrahModels);

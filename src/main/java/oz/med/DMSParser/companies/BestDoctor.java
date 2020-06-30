@@ -102,7 +102,7 @@ public class BestDoctor extends Company {
                     DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
                     try {
-                        log.info("Прикрепление пациента");
+                        log.debug("Прикрепление пациента");
                         BestDoctorModel bestDoctorModel = new BestDoctorModel();
                         //Костыль против пробразования строки в число
                         Cell policyNumberCell = cellIterator.next();
@@ -120,7 +120,7 @@ public class BestDoctor extends Company {
                         bestDoctorModel.setPolicyStartDate(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPlaceOfWork(cellIterator.next().toString());
-                        log.info(bestDoctorModel.toString());
+                        log.debug(bestDoctorModel.toString());
 
                         customers.add(bestDoctorModel);
                     } catch (ParseException e) {
@@ -193,7 +193,7 @@ public class BestDoctor extends Company {
                     DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 
                     try {
-                        log.info("Открепление пациента");
+                        log.debug("Открепление пациента");
                         BestDoctorModel bestDoctorModel = new BestDoctorModel();
                         //Костыль против пробразования строки в число
                         Cell policyNumberCell = cellIterator.next();
@@ -206,7 +206,7 @@ public class BestDoctor extends Company {
                         bestDoctorModel.setSex(cellIterator.next().toString());
                         bestDoctorModel.setDateOfBirth(format.parse(cellIterator.next().toString()));
                         bestDoctorModel.setPolicyEndDate(format.parse(cellIterator.next().toString()));
-                        log.info(bestDoctorModel.toString());
+                        log.debug(bestDoctorModel.toString());
 
                         customers.add(bestDoctorModel);
                     } catch (ParseException e) {
@@ -261,7 +261,10 @@ public class BestDoctor extends Company {
             int currentAttachCount = 0;
             for (BestDoctorModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {} {} {}", customer.getSurname(), customer.getName(), customer.getPatronymic());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());

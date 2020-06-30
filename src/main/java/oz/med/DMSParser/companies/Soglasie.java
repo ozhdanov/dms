@@ -116,7 +116,7 @@ public class Soglasie extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Прикрепление пациента");
+                            log.debug("Прикрепление пациента");
                             SoglasieModel soglasieModel = new SoglasieModel();
 
                             soglasieModel.setSurname(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
@@ -129,7 +129,7 @@ public class Soglasie extends Company {
                             soglasieModel.setValidity(validity);
                             soglasieModel.setPlaceOfWork(placeOfWork);
 
-                            log.info(soglasieModel.toString());
+                            log.debug(soglasieModel.toString());
 
                             customers.add(soglasieModel);
                         } catch (Exception e) {
@@ -205,14 +205,14 @@ public class Soglasie extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Открепление пациента");
+                            log.debug("Открепление пациента");
 
                             SoglasieModel soglasieModel = new SoglasieModel();
 
                             soglasieModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
 
-                            log.info(soglasieModel.toString());
+                            log.debug(soglasieModel.toString());
 
                             customers.add(soglasieModel);
                         } catch (Exception e) {
@@ -267,7 +267,10 @@ public class Soglasie extends Company {
             int currentAttachCount = 0;
             for (SoglasieModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {} {} {}", customer.getSurname(), customer.getName(), customer.getPatronymic());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());

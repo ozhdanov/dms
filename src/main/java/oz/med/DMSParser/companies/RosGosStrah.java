@@ -111,7 +111,7 @@ public class RosGosStrah extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Прикрепление пациента");
+//                            log.debug("Прикрепление пациента");
                             RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
 
                             rosGosStrahModel.setFio(cellIterator.next().toString());
@@ -127,7 +127,7 @@ public class RosGosStrah extends Company {
                             String policyNumber = policyNumberCell.getStringCellValue();
                             rosGosStrahModel.setPolicyNumber(policyNumber);
 
-                            log.info(rosGosStrahModel.toString());
+//                            log.debug(rosGosStrahModel.toString());
 
                             customers.add(rosGosStrahModel);
                         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class RosGosStrah extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Открепление пациента");
+//                            log.debug("Открепление пациента");
 
                             RosGosStrahModel rosGosStrahModel = new RosGosStrahModel();
 
@@ -214,7 +214,7 @@ public class RosGosStrah extends Company {
                             String policyNumber = policyNumberCell.getStringCellValue();
                             rosGosStrahModel.setPolicyNumber(policyNumber);
 
-                            log.info(rosGosStrahModel.toString());
+//                            log.debug(rosGosStrahModel.toString());
 
                             customers.add(rosGosStrahModel);
                         } catch (Exception e) {
@@ -269,7 +269,10 @@ public class RosGosStrah extends Company {
             int currentAttachCount = 0;
             for (RosGosStrahModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {}", customer.getFio());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getFio());

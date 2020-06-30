@@ -110,7 +110,7 @@ public class Absolut extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Прикрепление пациента");
+                            log.debug("Прикрепление пациента");
                             AbsolutModel inGosStrahModel = new AbsolutModel();
 
                             inGosStrahModel.setFio(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
@@ -121,7 +121,7 @@ public class Absolut extends Company {
                             inGosStrahModel.setInsuranceProgram(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setInsurant(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -195,7 +195,7 @@ public class Absolut extends Company {
 
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
-                            log.info("Открепление пациента");
+                            log.debug("Открепление пациента");
 
                             AbsolutModel inGosStrahModel = new AbsolutModel();
 
@@ -207,7 +207,7 @@ public class Absolut extends Company {
                             inGosStrahModel.setInsuranceProgram(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
                             inGosStrahModel.setInsurant(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
-                            log.info(inGosStrahModel.toString());
+                            log.debug(inGosStrahModel.toString());
 
                             customers.add(inGosStrahModel);
                         } catch (Exception e) {
@@ -262,7 +262,10 @@ public class Absolut extends Company {
             int currentAttachCount = 0;
             for (AbsolutModel customer : customers) {
                 if (customer.isNew()) {
-                    int rows = sheet.getLastRowNum();
+
+                    log.info("Прикрепление пациента {}", customer.getFio());
+
+                    int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1, rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getFio());

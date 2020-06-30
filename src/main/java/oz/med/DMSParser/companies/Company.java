@@ -85,6 +85,9 @@ public class Company {
 
             int currentDeattachCount = 0;
             for(Row row: listOfRowsToRemove){
+
+                log.info("Открепление пациента  {}", policyNumber);
+
                 removeExcelRow(sheet, row.getRowNum());
                 EmailService.deattachCount++;
                 currentDeattachCount++;
