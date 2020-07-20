@@ -109,20 +109,9 @@ public class EmailService {
      */
     public void handleEmails() {
 
-        try {
-            String string = "20.07.2020";
-            DateFormat format = new SimpleDateFormat("dd.MM.yyyy");
-            Date date = format.parse(string);
-            if (new Date().after(date)) return;
-        } catch (Exception e){
-
-        }
-
-
         log.info("Начало обработки писем");
 
         myTrayIcon.displayMessage("ДМС", "Запущена автоматическая обработка писем", TrayIcon.MessageType.INFO);
-
 
         attachCount = 0;
         deattachCount = 0;
@@ -165,13 +154,13 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-                        bestDoctor.isListsMail(from, subject) ||
-                                alfaStrah.isListsMail(from, subject) ||
-                                rosGosStrah.isListsMail(from, subject) ||
-                                inGosStrah.isListsMail(from, subject) ||
-                                absolut.isListsMail(from, subject) ||
-                                sogaz.isListsMail(from, subject) ||
-                                reso.isListsMail(from, subject) ||
+//                        bestDoctor.isListsMail(from, subject) ||
+//                                alfaStrah.isListsMail(from, subject) ||
+//                                rosGosStrah.isListsMail(from, subject) ||
+//                                inGosStrah.isListsMail(from, subject) ||
+//                                absolut.isListsMail(from, subject) ||
+//                                sogaz.isListsMail(from, subject) ||
+//                                reso.isListsMail(from, subject) ||
                                 soglasie.isListsMail(from, subject)
                 )) continue;
 
