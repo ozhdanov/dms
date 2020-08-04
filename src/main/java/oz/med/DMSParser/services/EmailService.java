@@ -154,13 +154,13 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-//                        bestDoctor.isListsMail(from, subject) ||
-//                                alfaStrah.isListsMail(from, subject) ||
-//                                rosGosStrah.isListsMail(from, subject) ||
-//                                inGosStrah.isListsMail(from, subject) ||
-//                                absolut.isListsMail(from, subject) ||
-//                                sogaz.isListsMail(from, subject) ||
-//                                reso.isListsMail(from, subject) ||
+                        bestDoctor.isListsMail(from, subject) ||
+                                alfaStrah.isListsMail(from, subject) ||
+                                rosGosStrah.isListsMail(from, subject) ||
+                                inGosStrah.isListsMail(from, subject) ||
+                                absolut.isListsMail(from, subject) ||
+                                sogaz.isListsMail(from, subject) ||
+                                reso.isListsMail(from, subject) ||
                                 soglasie.isListsMail(from, subject)
                 )) continue;
 
