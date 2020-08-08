@@ -160,7 +160,8 @@ public class EmailService {
                                 alfaStrah.isListsMail(from, subject) ||
                                 rosGosStrah.isListsMail(from, subject) ||
                                 inGosStrah.isListsMail(from, subject) ||
-                                absolut.isListsMail(from, subject) ||
+                                //Письма кривые, убираем абсолют
+                                //absolut.isListsMail(from, subject) ||
                                 sogaz.isListsMail(from, subject) ||
                                 reso.isListsMail(from, subject) ||
                                 renaissance.isListsMail(from, subject) ||

@@ -256,8 +256,10 @@ public class Absolut extends Company {
                     String validity = validityCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (AbsolutModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity())){
                                 customer.setNew(false);
+                                break;
+                            }
                         }
                     }
                 }

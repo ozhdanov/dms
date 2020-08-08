@@ -172,12 +172,12 @@ public class Reso extends Company {
                     Cell policyNumberCell = row.getCell(0);
                     policyNumberCell.setCellType(CellType.STRING);
                     String policyNumber = policyNumberCell.getStringCellValue();
-                    Cell validityCell = row.getCell(6);
+                    Cell validityCell = row.getCell(5);
                     validityCell.setCellType(CellType.STRING);
                     String validity = validityCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (ResoModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.contains(customer.getValidity()))
                                 customer.setNew(false);
                         }
                     }

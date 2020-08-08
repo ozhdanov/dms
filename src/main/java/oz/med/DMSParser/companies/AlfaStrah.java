@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.AlfaStrahModel;
@@ -19,6 +20,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -247,7 +249,19 @@ public class AlfaStrah extends Company {
                     String policyNumber = policyNumberCell.getStringCellValue();
                     Cell policyEndDateCell = row.getCell(6);
                     policyEndDateCell.setCellType(CellType.STRING);
-                    String policyEndDate = policyEndDateCell.getStringCellValue();
+                    Date policyEndDate = DateTime.now().toDate();
+                    try {
+                        policyEndDate = format.parse(policyEndDateCell.getStringCellValue());
+                    } catch (ParseException e) {
+                        try {
+                            DateFormat format2 = new SimpleDateFormat("dd/MM/yyyy");
+                            policyEndDate = format2.parse(policyEndDateCell.getStringCellValue());
+                        }
+                        catch (ParseException ee) {
+                            log.error("Не удалось распарсить дату", ee);
+                        }
+                    }
+
                     if(!policyNumber.toString().isEmpty()) {
                         for (AlfaStrahModel customer : customers) {
                             if (policyNumber.equals(customer.getPolicyNumber()) && policyEndDate.equals(customer.getPolicyEndDate()))

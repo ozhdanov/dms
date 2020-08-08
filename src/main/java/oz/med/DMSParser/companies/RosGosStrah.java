@@ -262,7 +262,7 @@ public class RosGosStrah extends Company {
                     String validity = validityCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (RosGosStrahModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.contains(customer.getValidity()))
                                 customer.setNew(false);
                         }
                     }
