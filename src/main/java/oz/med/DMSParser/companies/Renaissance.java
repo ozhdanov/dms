@@ -11,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import oz.med.DMSParser.model.RenaissanceModel;
-import oz.med.DMSParser.model.SoglasieModel;
 import oz.med.DMSParser.services.EmailService;
 
 import java.awt.*;
@@ -86,19 +85,15 @@ public class Renaissance extends Company {
                     while (cellIterator.hasNext()) {
                         cell = cellIterator.next();
                         //Вытаскиваем сроки страхования
-                        if (cell.toString().contains("Прикрепление")) {
+                        if (cell.toString().contains("на срок:")) {
                             cell = cellIterator.next();
                             validity = cell.toString();
-                            cellIterator.next();
-                            cellIterator.next();
-                            cell = cellIterator.next();
-                            validity += " - " + cell.toString();
                             break;
-                        } else if (cell.toString().contains("Организация")) {
+                        } else if (cell.toString().contains("сотрудников:")) {
                             cell = cellIterator.next();
                             placeOfWork = cell.toString();
                             break;
-                        } else if (cell.toString().contains("№ полиса ДМС")) {
+                        } else if (cell.toString().contains("№ п/п")) {
                             startOfDataFlag = true;
                             prewRowIndex = row.getRowNum();
                             break;
@@ -107,7 +102,6 @@ public class Renaissance extends Company {
                     continue;
                 } else if (cellIterator.hasNext()){
 
-                    cellIterator.next();
                     cell = cellIterator.next();
 
                     if (cell.getRowIndex() - prewRowIndex > 1) {
@@ -118,21 +112,20 @@ public class Renaissance extends Company {
                     if(cellIterator.hasNext() && !cell.toString().isEmpty()) {
                         try {
                             log.debug("Прикрепление пациента");
-                            RenaissanceModel senaissanceModel = new RenaissanceModel();
+                            RenaissanceModel renaissanceModel = new RenaissanceModel();
 
-                            senaissanceModel.setSurname(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setName(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setPatronymic(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setDateOfBirth(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setAdress(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setPhoneNumber(row.getCell(7, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
-                            senaissanceModel.setValidity(validity);
-                            senaissanceModel.setPlaceOfWork(placeOfWork);
+                            renaissanceModel.setFio(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setDateOfBirth(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setPassport(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setAdress(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setPhoneNumber(row.getCell(5, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setPolicyNumber(row.getCell(6, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setValidity(validity);
+                            renaissanceModel.setPlaceOfWork(placeOfWork);
 
-                            log.debug(senaissanceModel.toString());
+                            log.debug(renaissanceModel.toString());
 
-                            customers.add(senaissanceModel);
+                            customers.add(renaissanceModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
@@ -167,7 +160,7 @@ public class Renaissance extends Company {
         HSSFWorkbook workbook = new HSSFWorkbook();
         List<RenaissanceModel> customers = new ArrayList<>();
         try {
-            // we create an HSSF Workbook object for our XLSX Excel File
+            // we create an XSSF Workbook object for our XLSX Excel File
             workbook = new HSSFWorkbook(is);
             // we get first sheet
             HSSFSheet sheet = workbook.getSheetAt(0);
@@ -208,14 +201,14 @@ public class Renaissance extends Company {
                         try {
                             log.debug("Открепление пациента");
 
-                            RenaissanceModel senaissanceModel = new RenaissanceModel();
+                            RenaissanceModel renaissanceModel = new RenaissanceModel();
 
-                            senaissanceModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
+                            renaissanceModel.setPolicyNumber(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).toString());
 
 
-                            log.debug(senaissanceModel.toString());
+                            log.debug(renaissanceModel.toString());
 
-                            customers.add(senaissanceModel);
+                            customers.add(renaissanceModel);
                         } catch (Exception e) {
                             log.error("Ошибка парсинга строки", e);
                         }
@@ -269,27 +262,26 @@ public class Renaissance extends Company {
             for (RenaissanceModel customer : customers) {
                 if (customer.isNew()) {
 
-                    log.info("Прикрепление пациента {} {} {}", customer.getSurname(), customer.getName(), customer.getPatronymic());
+                    log.info("Прикрепление пациента {}", customer.getFio());
 
                     int rows = sheet.getPhysicalNumberOfRows() - sheet.getFirstRowNum();
                     sheet.shiftRows(1,rows,1);
                     XSSFRow row = sheet.createRow(1);
                     row.createCell(0).setCellValue(customer.getPolicyNumber());
-                    row.createCell(1).setCellValue(customer.getSurname());
-                    row.createCell(2).setCellValue(customer.getName());
-                    row.createCell(3).setCellValue(customer.getPatronymic());
-                    row.createCell(4).setCellValue(customer.getDateOfBirth());
-                    row.createCell(5).setCellValue(customer.getAdress());
-                    row.createCell(6).setCellValue(customer.getPhoneNumber());
-                    row.createCell(7).setCellValue(customer.getValidity());
-                    row.createCell(8).setCellValue(customer.getPlaceOfWork());
+                    row.createCell(1).setCellValue(customer.getFio());
+                    row.createCell(2).setCellValue(customer.getPassport());
+                    row.createCell(3).setCellValue(customer.getDateOfBirth());
+                    row.createCell(4).setCellValue(customer.getAdress());
+                    row.createCell(5).setCellValue(customer.getPhoneNumber());
+                    row.createCell(6).setCellValue(customer.getValidity());
+                    row.createCell(7).setCellValue(customer.getPlaceOfWork());
 
                     EmailService.attachCount++;
                     currentAttachCount++;
                 }
             }
             if (currentAttachCount > 0)
-                myTrayIcon.displayMessage("Согласие", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
+                myTrayIcon.displayMessage("Ренессанс", "Прикреплено " + currentAttachCount + " пациентов", TrayIcon.MessageType.INFO);
 
             FileOutputStream outputStream = new FileOutputStream(this.listsUrl + storageFileUrl);
             workbook.write(outputStream);
@@ -313,7 +305,7 @@ public class Renaissance extends Company {
 
     public void removeCustomersFromFile(List<RenaissanceModel> customers) {
         for (RenaissanceModel customer : customers) {
-            removeCustomerFromFile("Согласие", storageFileUrl, customer.getPolicyNumber(), 0);
+            removeCustomerFromFile("Ренессанс", storageFileUrl, customer.getPolicyNumber(), 0);
         }
     }
 

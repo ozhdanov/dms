@@ -99,3 +99,12 @@ reso:
   attachfiletemplate: ".RTF"
   deattachfiletemplate: ".RTF"
 
+renaissance:
+  storage: "Renaissance.xlsx"
+  sender: "spiskilpu@renins.com"
+  liststemplate: ""
+  attachlisttemplate: "_прикр_"
+  deattachlisttemplate: "_откр_"
+  attachfiletemplate: "_прикр_"
+  deattachfiletemplate: "_откр_"
+

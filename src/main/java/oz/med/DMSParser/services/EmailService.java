@@ -56,6 +56,8 @@ public class EmailService {
     Reso reso;
     @Autowired
     Soglasie soglasie;
+    @Autowired
+    Renaissance renaissance;
 
     @Value("${spring.mail.protocol}")
     private String protocol;
@@ -154,14 +156,15 @@ public class EmailService {
                 String messageContent = "";
 
                 if (!(
-                        bestDoctor.isListsMail(from, subject) ||
-                                alfaStrah.isListsMail(from, subject) ||
-                                rosGosStrah.isListsMail(from, subject) ||
-                                inGosStrah.isListsMail(from, subject) ||
-                                absolut.isListsMail(from, subject) ||
-                                sogaz.isListsMail(from, subject) ||
-                                reso.isListsMail(from, subject) ||
-                                soglasie.isListsMail(from, subject)
+//                        bestDoctor.isListsMail(from, subject) ||
+//                                alfaStrah.isListsMail(from, subject) ||
+//                                rosGosStrah.isListsMail(from, subject) ||
+//                                inGosStrah.isListsMail(from, subject) ||
+//                                absolut.isListsMail(from, subject) ||
+//                                sogaz.isListsMail(from, subject) ||
+//                                reso.isListsMail(from, subject) ||
+                                renaissance.isListsMail(from, subject)
+//                                soglasie.isListsMail(from, subject)
                 )) continue;
 
 //                log.info("\t From: " + from);
@@ -189,7 +192,11 @@ public class EmailService {
 
                             try {
                                 //У всех файл прикреплен по разному и разные кодировки
-                                if ((inGosStrah.isListsMail(from, subject) || absolut.isListsMail(from, subject) || sogaz.isListsMail(from, subject) || soglasie.isListsMail(from, subject))
+                                if ((inGosStrah.isListsMail(from, subject)
+                                        || absolut.isListsMail(from, subject)
+                                        || sogaz.isListsMail(from, subject)
+                                        || soglasie.isListsMail(from, subject)
+                                        || renaissance.isListsMail(from, subject))
                                         && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
                                     fileName = MimeUtility.decodeText(part.getFileName());
                                 else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
@@ -299,6 +306,18 @@ public class EmailService {
                                     if (soglasie.isDeattachFile(fileName)) {
                                         List<SoglasieModel> soglasieModels = soglasie.parseDeattachListExcel(part.getInputStream());
                                         if (soglasieModels.size() > 0) soglasie.removeCustomersFromFile(soglasieModels);
+                                    }
+                                }
+                                //Ренессанс
+                                else if (renaissance.isAttachListMail(from, subject)) {
+                                    if (renaissance.isAttachFile(fileName)) {
+                                        List<RenaissanceModel> renaissanceModels = renaissance.parseAttachListExcel(part.getInputStream());
+                                        renaissance.addCustomersToFile(renaissanceModels);
+                                    }
+                                } else if (renaissance.isDeattachListMail(from, subject)) {
+                                    if (renaissance.isDeattachFile(fileName)) {
+                                        List<RenaissanceModel> renaissanceModels = renaissance.parseDeattachListExcel(part.getInputStream());
+                                        if (renaissanceModels.size() > 0) renaissance.removeCustomersFromFile(renaissanceModels);
                                     }
                                 }
                             } catch (IOException e) {
