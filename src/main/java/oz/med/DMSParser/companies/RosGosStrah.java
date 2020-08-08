@@ -257,9 +257,12 @@ public class RosGosStrah extends Company {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
                     Cell policyNumberCell = row.getCell(5);
                     String policyNumber = policyNumberCell.getStringCellValue();
+                    Cell validityCell = row.getCell(6);
+                    validityCell.setCellType(CellType.STRING);
+                    String validity = validityCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (RosGosStrahModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity()))
                                 customer.setNew(false);
                         }
                     }

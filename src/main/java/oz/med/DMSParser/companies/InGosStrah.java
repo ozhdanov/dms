@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -259,9 +260,12 @@ public class InGosStrah extends Company {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
                     Cell policyNumberCell = row.getCell(0);
                     String policyNumber = policyNumberCell.getStringCellValue();
+                    Cell policyEndDateCell = row.getCell(11);
+                    policyEndDateCell.setCellType(CellType.STRING);
+                    String policyEndDate = policyEndDateCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (InGosStrahModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && policyEndDate.equals(customer.getPolicyEndDate()))
                                 customer.setNew(false);
                         }
                     }

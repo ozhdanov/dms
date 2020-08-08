@@ -249,9 +249,12 @@ public class BestDoctor extends Company {
                     Cell policyNumberCell = row.getCell(0);
                     policyNumberCell.setCellType(CellType.STRING);
                     String policyNumber = policyNumberCell.getStringCellValue();
+                    Cell policyEndDateCell = row.getCell(9);
+                    policyEndDateCell.setCellType(CellType.STRING);
+                    String policyEndDate = policyEndDateCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (BestDoctorModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && policyEndDate.equals(customer.getPolicyEndDate()))
                                 customer.setNew(false);
                         }
                     }

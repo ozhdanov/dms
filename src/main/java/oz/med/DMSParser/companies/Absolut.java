@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -250,9 +251,12 @@ public class Absolut extends Company {
                 if (row.getRowNum() > 0 && !isRowEmpty(row)) {
                     Cell policyNumberCell = row.getCell(3);
                     String policyNumber = policyNumberCell.getStringCellValue();
+                    Cell validityCell = row.getCell(4);
+                    validityCell.setCellType(CellType.STRING);
+                    String validity = validityCell.getStringCellValue();
                     if(!policyNumber.toString().isEmpty()) {
                         for (AbsolutModel customer : customers) {
-                            if (policyNumber.equals(customer.getPolicyNumber()))
+                            if (policyNumber.equals(customer.getPolicyNumber()) && validity.equals(customer.getValidity()))
                                 customer.setNew(false);
                         }
                     }
