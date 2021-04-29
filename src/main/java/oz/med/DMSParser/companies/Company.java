@@ -46,8 +46,8 @@ public class Company {
             return false;
     }
 
-    public boolean isAttachFile(String fileName, String attacFileTemplate) {
-        if (fileName.toUpperCase().contains(attacFileTemplate.toUpperCase()))
+    public boolean isAttachFile(String fileName, String attachFileTemplate) {
+        if (fileName.toUpperCase().contains(attachFileTemplate.toUpperCase()))
             return true;
         else
             return false;

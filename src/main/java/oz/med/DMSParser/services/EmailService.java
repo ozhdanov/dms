@@ -251,12 +251,12 @@ public class EmailService {
                                 }
                                 //ИнГосСтрах
                                 else if (inGosStrah.isAttachListMail(from, subject)) {
-                                    if (inGosStrah.isAttachFile(fileName) && inGosStrah.isAttachFile("XLS")) {
+                                    if (inGosStrah.isAttachFile(fileName) && fileName.contains("XLS")) {
                                         List<InGosStrahModel> inGosStrahModels = inGosStrah.parseAttachListExcel(part.getInputStream());
                                         inGosStrah.addCustomersToFile(inGosStrahModels);
                                     }
                                 } else if (inGosStrah.isDeattachListMail(from, subject)) {
-                                    if (inGosStrah.isDeattachFile(fileName) && inGosStrah.isAttachFile("XLS")) {
+                                    if (inGosStrah.isDeattachFile(fileName) && fileName.contains("XLS")) {
                                         List<InGosStrahModel> inGosStrahModels = inGosStrah.parseDeattachListExcel(part.getInputStream());
                                         if (inGosStrahModels.size() > 0)
                                             inGosStrah.removeCustomersFromFile(inGosStrahModels);
