@@ -19,7 +19,7 @@ mail:
 
 file:download:location: D:\\temp\\mail
 mailFolderName: INBOX
-mailsListSize: 200
+mailsListSize: 300
 #listsUrl : "D:\\temp\\mail\\"
 listsUrl : ""
 

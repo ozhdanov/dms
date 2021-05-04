@@ -209,7 +209,9 @@ public class EmailService {
                                 continue;
                             }
 
-                            log.info("Обработка прикреплённого файла: " + fileName);
+                            String fixedFrom = from.indexOf("?=") == -1 ? from: from.substring(from.indexOf("?="));
+                            log.info("Обработка письма {} от {}, дата {}, файл: {}",
+                                    subject, fixedFrom, message.getSentDate(), fileName);
 
                             attachFiles += fileName + ", ";
 
