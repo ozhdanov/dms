@@ -38,8 +38,8 @@ alfastrah:
   liststemplate: "СПИСКИ"
   attachlisttemplate: "ПРИКРЕПЛЕНИЕ"
   deattachlisttemplate: "ОТКРЕПЛЕНИЕ"
-  attachfiletemplate: "prikr"
-  deattachfiletemplate: "snyat"
+  attachfiletemplate: "_prikr"
+  deattachfiletemplate: "_snyat"
 
 rosgosstrah:
   storage: "RosGosStrah.xlsx"
